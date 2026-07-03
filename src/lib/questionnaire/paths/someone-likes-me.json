@@ -1,0 +1,186 @@
+{
+  "path": "someone_likes_me",
+  "title": "Does Someone Love Me?",
+  "questions": [
+    {
+      "id": "relationship_role",
+      "text": "Who is this person in your life?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Friend", "value": "friend" },
+        { "label": "Best Friend", "value": "best_friend" },
+        { "label": "Classmate", "value": "classmate" },
+        { "label": "Coworker", "value": "coworker" },
+        { "label": "Online Friend", "value": "online_friend" },
+        { "label": "Ex", "value": "ex" },
+        { "label": "Someone I recently met", "value": "recently_met" },
+        { "label": "Other", "value": "other" }
+      ]
+    },
+    {
+      "id": "duration",
+      "text": "How long have you known them?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Less than 1 month", "value": "less_than_1_month" },
+        { "label": "1–6 months", "value": "1_6_months" },
+        { "label": "6–12 months", "value": "6_12_months" },
+        { "label": "1–3 years", "value": "1_3_years" },
+        { "label": "More than 3 years", "value": "more_than_3_years" }
+      ]
+    },
+    {
+      "id": "interaction_frequency",
+      "text": "How often do you interact?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Daily", "value": "daily" },
+        { "label": "Several times a week", "value": "several_times_week" },
+        { "label": "Weekly", "value": "weekly" },
+        { "label": "Monthly", "value": "monthly" },
+        { "label": "Rarely", "value": "rarely" }
+      ]
+    },
+    {
+      "id": "conversation_initiator",
+      "text": "Who usually starts conversations?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Mostly me", "value": "mostly_me" },
+        { "label": "Mostly them", "value": "mostly_them" },
+        { "label": "Both equally", "value": "both_equally" }
+      ]
+    },
+    {
+      "id": "engagement_level",
+      "text": "How engaged are they when talking with you?",
+      "type": "scale",
+      "min": 1,
+      "max": 10
+    },
+    {
+      "id": "remembers_details",
+      "text": "Do they remember small details about you?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Never", "value": "never" },
+        { "label": "Sometimes", "value": "sometimes" },
+        { "label": "Often", "value": "often" },
+        { "label": "Almost Always", "value": "almost_always" }
+      ]
+    },
+    {
+      "id": "upset_response",
+      "text": "When you're upset, how do they usually respond?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Ignore it", "value": "ignore" },
+        { "label": "Offer basic support", "value": "basic_support" },
+        { "label": "Comfort me", "value": "comfort" },
+        { "label": "Go out of their way to help", "value": "go_out_of_way" }
+      ]
+    },
+    {
+      "id": "makes_time",
+      "text": "Do they make time for you even when busy?",
+      "type": "scale",
+      "min": 1,
+      "max": 10
+    },
+    {
+      "id": "introduced_friends",
+      "text": "Have they introduced you to close friends or family?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Yes", "value": "yes" },
+        { "label": "No", "value": "no" },
+        { "label": "Not yet", "value": "not_yet" }
+      ]
+    },
+    {
+      "id": "compliments",
+      "text": "How often do they compliment or appreciate you?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Never", "value": "never" },
+        { "label": "Occasionally", "value": "occasionally" },
+        { "label": "Often", "value": "often" },
+        { "label": "Very Often", "value": "very_often" }
+      ]
+    },
+    {
+      "id": "happy_when_seeing",
+      "text": "Do they look happy or excited when they see you?",
+      "type": "scale",
+      "min": 1,
+      "max": 10
+    },
+    {
+      "id": "jealousy",
+      "text": "Have they ever shown signs of jealousy or protectiveness?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Never", "value": "never" },
+        { "label": "Sometimes", "value": "sometimes" },
+        { "label": "Often", "value": "often" },
+        { "label": "I'm not sure", "value": "not_sure" }
+      ]
+    },
+    {
+      "id": "emotional_openness",
+      "text": "How emotionally open are they with you?",
+      "type": "scale",
+      "min": 1,
+      "max": 10
+    },
+    {
+      "id": "trust_personal",
+      "text": "Do they trust you with personal matters?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Yes", "value": "yes" },
+        { "label": "No", "value": "no" },
+        { "label": "Sometimes", "value": "sometimes" }
+      ]
+    },
+    {
+      "id": "effort_reciprocity",
+      "text": "Do you feel your effort is returned equally?",
+      "type": "scale",
+      "min": 1,
+      "max": 10
+    },
+    {
+      "id": "in_relationship",
+      "text": "Are they currently in a relationship?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Yes", "value": "yes" },
+        { "label": "No", "value": "no" },
+        { "label": "I don't know", "value": "dont_know" }
+      ]
+    },
+    {
+      "id": "romantic_interest_expressed",
+      "text": "Have they ever clearly expressed romantic interest?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Yes", "value": "yes" },
+        { "label": "No", "value": "no" },
+        { "label": "Maybe", "value": "maybe" }
+      ]
+    },
+    {
+      "id": "guess_feelings",
+      "text": "If you had to guess today, what do you think they feel?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Definitely Romantic", "value": "definitely_romantic" },
+        { "label": "Probably Romantic", "value": "probably_romantic" },
+        { "label": "Unsure", "value": "unsure" },
+        { "label": "Probably Friendship", "value": "probably_friendship" },
+        { "label": "Definitely Friendship", "value": "definitely_friendship" }
+      ]
+    }
+  ]
+}

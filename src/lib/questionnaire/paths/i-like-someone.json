@@ -1,0 +1,174 @@
+{
+  "path": "i_like_someone",
+  "title": "Do I Love Someone?",
+  "questions": [
+    {
+      "id": "relationship_role",
+      "text": "Who is this person in your life?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Friend", "value": "friend" },
+        { "label": "Best Friend", "value": "best_friend" },
+        { "label": "Classmate", "value": "classmate" },
+        { "label": "Coworker", "value": "coworker" },
+        { "label": "Online Friend", "value": "online_friend" },
+        { "label": "Ex", "value": "ex" },
+        { "label": "Someone I recently met", "value": "recently_met" },
+        { "label": "Other", "value": "other" }
+      ]
+    },
+    {
+      "id": "duration",
+      "text": "How long have you known them?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Less than 1 month", "value": "less_than_1_month" },
+        { "label": "1–6 months", "value": "1_6_months" },
+        { "label": "6–12 months", "value": "6_12_months" },
+        { "label": "1–3 years", "value": "1_3_years" },
+        { "label": "More than 3 years", "value": "more_than_3_years" }
+      ]
+    },
+    {
+      "id": "interaction_frequency",
+      "text": "How often do you interact?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Daily", "value": "daily" },
+        { "label": "Several times a week", "value": "several_times_week" },
+        { "label": "Weekly", "value": "weekly" },
+        { "label": "Monthly", "value": "monthly" },
+        { "label": "Rarely", "value": "rarely" }
+      ]
+    },
+    {
+      "id": "think_about_them",
+      "text": "How often do you think about them?",
+      "type": "scale",
+      "min": 1,
+      "max": 10
+    },
+    {
+      "id": "excited_to_see",
+      "text": "How excited are you to see or talk to them?",
+      "type": "scale",
+      "min": 1,
+      "max": 10
+    },
+    {
+      "id": "miss_them",
+      "text": "Do you miss them when they're not around?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Never", "value": "never" },
+        { "label": "Sometimes", "value": "sometimes" },
+        { "label": "Often", "value": "often" },
+        { "label": "Almost Always", "value": "almost_always" }
+      ]
+    },
+    {
+      "id": "happiness_importance",
+      "text": "How important is their happiness to you?",
+      "type": "scale",
+      "min": 1,
+      "max": 10
+    },
+    {
+      "id": "make_time",
+      "text": "Do you make time for them even when you're busy?",
+      "type": "scale",
+      "min": 1,
+      "max": 10
+    },
+    {
+      "id": "remember_details",
+      "text": "Do you remember little things about them?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Never", "value": "never" },
+        { "label": "Sometimes", "value": "sometimes" },
+        { "label": "Often", "value": "often" },
+        { "label": "Almost Always", "value": "almost_always" }
+      ]
+    },
+    {
+      "id": "imagined_future",
+      "text": "Have you imagined a future that includes them?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Never", "value": "never" },
+        { "label": "Sometimes", "value": "sometimes" },
+        { "label": "Often", "value": "often" },
+        { "label": "Very Often", "value": "very_often" }
+      ]
+    },
+    {
+      "id": "support_difficult",
+      "text": "Would you support them through difficult times?",
+      "type": "scale",
+      "min": 1,
+      "max": 10
+    },
+    {
+      "id": "true_self_comfort",
+      "text": "Do you feel comfortable being your true self around them?",
+      "type": "scale",
+      "min": 1,
+      "max": 10
+    },
+    {
+      "id": "attraction_type",
+      "text": "Are you attracted to them physically, emotionally, or both?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Mostly Physical", "value": "mostly_physical" },
+        { "label": "Mostly Emotional", "value": "mostly_emotional" },
+        { "label": "Both Equally", "value": "both_equally" },
+        { "label": "Not Sure", "value": "not_sure" }
+      ]
+    },
+    {
+      "id": "trust_level",
+      "text": "How much do you trust them?",
+      "type": "scale",
+      "min": 1,
+      "max": 10
+    },
+    {
+      "id": "dating_someone_else",
+      "text": "How would you feel if they started dating someone else?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Happy for them", "value": "happy" },
+        { "label": "Slightly Disappointed", "value": "slightly_disappointed" },
+        { "label": "Very Upset", "value": "very_upset" },
+        { "label": "Heartbroken", "value": "heartbroken" },
+        { "label": "Not Sure", "value": "not_sure" }
+      ]
+    },
+    {
+      "id": "love_crush_admiration",
+      "text": "Do you think this is love, a crush, admiration, or friendship?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Love", "value": "love" },
+        { "label": "Crush", "value": "crush" },
+        { "label": "Admiration", "value": "admiration" },
+        { "label": "Friendship", "value": "friendship" },
+        { "label": "Unsure", "value": "unsure" }
+      ]
+    },
+    {
+      "id": "if_confessed",
+      "text": "If they confessed their feelings today, what would you most likely do?",
+      "type": "multiple_choice",
+      "options": [
+        { "label": "Say yes immediately", "value": "say_yes" },
+        { "label": "Need time to think", "value": "need_time" },
+        { "label": "Stay friends", "value": "stay_friends" },
+        { "label": "Say no", "value": "say_no" },
+        { "label": "I'm not sure", "value": "not_sure" }
+      ]
+    }
+  ]
+}
