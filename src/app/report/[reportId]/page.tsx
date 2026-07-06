@@ -29,9 +29,11 @@ export default function ReportPage({
   }, [reportId]);
 
   return (
-    <PageShell wide className="pb-16">
-      <AppHeader />
-      <main>
+    <div className="landing-canvas relative min-h-screen">
+      <div className="page-glow pointer-events-none absolute inset-0 -z-10" />
+      <PageShell wide className="relative pb-16">
+        <AppHeader />
+        <main>
         {error && (
           <div className="py-24 text-center font-medium">
             <p>Report not found.</p>
@@ -46,7 +48,8 @@ export default function ReportPage({
           </div>
         )}
         {report && <ReportDashboard report={report} />}
-      </main>
-    </PageShell>
+        </main>
+      </PageShell>
+    </div>
   );
 }

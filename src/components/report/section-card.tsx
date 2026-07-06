@@ -45,11 +45,11 @@ export function FlagsList({
   }
 
   return (
-    <ul className="space-y-2">
+    <ul className="space-y-2.5">
       {flags.map((flag) => (
-        <li key={flag} className="flex items-start gap-2 text-base font-medium">
+        <li key={flag} className="flex items-start gap-2.5 text-sm font-medium leading-relaxed">
           <Icon className={cn("mt-0.5 size-4 shrink-0", color)} />
-          <span>{flag}</span>
+          <span className="text-foreground/80">{flag}</span>
         </li>
       ))}
     </ul>

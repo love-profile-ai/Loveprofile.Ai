@@ -2,20 +2,12 @@ export type ConfidenceLevel = "Low" | "Medium" | "High";
 
 export interface AnalysisReport {
   summary: string;
-  relationship_stage: string;
-  interest_level: string;
-  communication_analysis: string;
-  emotional_signals: string;
-  attachment_style: string;
-  mixed_signals: string[];
+  confidence: ConfidenceLevel;
   green_flags: string[];
   red_flags: string[];
-  behavior_patterns: string;
-  probability_estimate: string;
-  future_outlook: string;
-  possible_misunderstandings: string[];
-  advice: string[];
-  confidence: ConfidenceLevel;
+  what_we_noticed: string[];
+  gentle_next_steps: string[];
+  looking_ahead: string;
 }
 
 export interface ReportRecord {

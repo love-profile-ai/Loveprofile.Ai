@@ -1,21 +1,13 @@
 import { z } from "zod";
 
 export const analysisReportSchema = z.object({
-  summary: z.string(),
-  relationship_stage: z.string(),
-  interest_level: z.string(),
-  communication_analysis: z.string(),
-  emotional_signals: z.string(),
-  attachment_style: z.string(),
-  mixed_signals: z.array(z.string()),
+  summary: z.string().min(1),
+  confidence: z.enum(["Low", "Medium", "High"]),
   green_flags: z.array(z.string()),
   red_flags: z.array(z.string()),
-  behavior_patterns: z.string(),
-  probability_estimate: z.string(),
-  future_outlook: z.string(),
-  possible_misunderstandings: z.array(z.string()),
-  advice: z.array(z.string()),
-  confidence: z.enum(["Low", "Medium", "High"]),
+  what_we_noticed: z.array(z.string()).min(1),
+  gentle_next_steps: z.array(z.string()).min(1),
+  looking_ahead: z.string().min(1),
 });
 
 export const answerSchema = z.object({

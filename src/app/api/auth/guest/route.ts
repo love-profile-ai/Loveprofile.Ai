@@ -4,6 +4,16 @@ import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 
+function authErrorMessage(error: { message?: string }): string {
+  const raw = error.message ?? "Authentication failed";
+  try {
+    const parsed = JSON.parse(raw) as { msg?: string; message?: string };
+    return parsed.msg ?? parsed.message ?? raw;
+  } catch {
+    return raw;
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const ip =
@@ -22,33 +32,58 @@ export async function POST(request: Request) {
     const admin = createAdminClient();
     const guestId = crypto.randomUUID();
     const email = `guest+${guestId}@guest.signal.app`;
-    const password = `${crypto.randomUUID()}${crypto.randomUUID()}`;
 
     const { error: createError } = await admin.auth.admin.createUser({
       email,
-      password,
       email_confirm: true,
       user_metadata: { guest: true },
     });
 
     if (createError) {
       console.error("Guest user create error:", createError);
-      return NextResponse.json({ error: createError.message }, { status: 500 });
-    }
-
-    const { data: signIn, error: signInError } =
-      await admin.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-    if (signInError || !signIn.session) {
-      console.error("Guest sign-in error:", signInError);
       return NextResponse.json(
-        { error: signInError?.message ?? "Could not create guest session" },
+        { error: authErrorMessage(createError) },
         { status: 500 }
       );
     }
+
+    const { data: linkData, error: linkError } =
+      await admin.auth.admin.generateLink({
+        type: "magiclink",
+        email,
+      });
+
+    const tokenHash = linkData?.properties?.hashed_token;
+    if (linkError || !tokenHash) {
+      console.error("Guest link error:", linkError);
+      return NextResponse.json(
+        {
+          error: linkError
+            ? authErrorMessage(linkError)
+            : "Could not create guest session",
+        },
+        { status: 500 }
+      );
+    }
+
+    const { data: verified, error: verifyError } = await admin.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: "email",
+    });
+
+    if (verifyError || !verified.session) {
+      console.error("Guest verify error:", verifyError);
+      return NextResponse.json(
+        {
+          error: verifyError
+            ? authErrorMessage(verifyError)
+            : "Could not create guest session",
+        },
+        { status: 500 }
+      );
+    }
+
+    const session = verified.session;
 
     const cookieStore = await cookies();
     const supabase = createServerClient(
@@ -69,8 +104,8 @@ export async function POST(request: Request) {
     );
 
     const { error: sessionError } = await supabase.auth.setSession({
-      access_token: signIn.session.access_token,
-      refresh_token: signIn.session.refresh_token,
+      access_token: session.access_token,
+      refresh_token: session.refresh_token,
     });
 
     if (sessionError) {
@@ -79,8 +114,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       ok: true,
-      access_token: signIn.session.access_token,
-      refresh_token: signIn.session.refresh_token,
+      access_token: session.access_token,
+      refresh_token: session.refresh_token,
     });
   } catch (error) {
     console.error("Guest auth error:", error);

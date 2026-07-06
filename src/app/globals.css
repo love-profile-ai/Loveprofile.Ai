@@ -260,4 +260,37 @@
   .sign-checkbox-checked {
     @apply border-primary bg-gradient-to-br from-primary/30 to-pink-400/40 text-primary shadow-sm;
   }
+
+  .report-canvas {
+    @apply relative overflow-hidden rounded-[2rem] border border-primary/15 bg-white/95 shadow-xl shadow-primary/10 backdrop-blur-sm;
+    @apply dark:bg-card/95;
+  }
+
+  .report-blob-green {
+    background: radial-gradient(
+      circle at 30% 70%,
+      oklch(0.92 0.06 145 / 0.45),
+      transparent 65%
+    );
+  }
+
+  .report-blob-pink {
+    background: radial-gradient(
+      circle at 70% 30%,
+      oklch(0.92 0.08 355 / 0.4),
+      transparent 60%
+    );
+  }
+
+  .report-blob-orange {
+    background: radial-gradient(
+      circle at 80% 80%,
+      oklch(0.93 0.07 55 / 0.35),
+      transparent 55%
+    );
+  }
+
+  .report-section-icon {
+    @apply flex size-10 shrink-0 items-center justify-center rounded-full text-white shadow-md;
+  }
 }

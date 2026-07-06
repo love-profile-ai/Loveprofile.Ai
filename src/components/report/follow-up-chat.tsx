@@ -79,9 +79,11 @@ export function FollowUpChat({ reportId }: { reportId: string }) {
   }
 
   return (
-    <Card className="glass-card">
-      <CardHeader>
-        <CardTitle className="font-display text-lg font-bold">Ask a follow-up question</CardTitle>
+    <Card className="rounded-2xl border border-primary/10 bg-white/60 shadow-sm backdrop-blur-sm dark:bg-card/60">
+      <CardHeader className="pb-2">
+        <CardTitle className="font-display text-base font-bold">
+          Have a question about your results?
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {messages.length > 0 && (

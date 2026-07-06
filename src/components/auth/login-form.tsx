@@ -41,7 +41,11 @@ export function LoginForm() {
     if (!result.ok) {
       setError(result.error);
       setLoading(null);
+      return;
     }
+    // OAuth redirects when enabled; guest fallback completes in-page.
+    router.push(next);
+    setLoading(null);
   }
 
   async function handleEmail(e: React.FormEvent) {

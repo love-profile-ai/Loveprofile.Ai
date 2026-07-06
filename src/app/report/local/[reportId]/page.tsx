@@ -24,9 +24,11 @@ export default function LocalReportPage({
   }, [reportId]);
 
   return (
-    <PageShell wide className="pb-16">
-      <AppHeader />
-      <main>
+    <div className="landing-canvas relative min-h-screen">
+      <div className="page-glow pointer-events-none absolute inset-0 -z-10" />
+      <PageShell wide className="relative pb-16">
+        <AppHeader />
+        <main>
         {!report && (
           <div className="py-24 text-center">
             <p className="font-medium">Report not found or session expired.</p>
@@ -43,7 +45,8 @@ export default function LocalReportPage({
             <ReportDashboard report={report} />
           </>
         )}
-      </main>
-    </PageShell>
+        </main>
+      </PageShell>
+    </div>
   );
 }

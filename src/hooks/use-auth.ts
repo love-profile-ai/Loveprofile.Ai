@@ -6,22 +6,23 @@ export type AuthResult =
   | { ok: true }
   | { ok: false; error: string };
 
+function normalizeAuthErrorMessage(message: string): string {
+  try {
+    const parsed = JSON.parse(message) as { msg?: string; message?: string };
+    return parsed.msg ?? parsed.message ?? message;
+  } catch {
+    return message;
+  }
+}
+
 function isProviderDisabledError(message: string): boolean {
-  const lower = message.toLowerCase();
+  const lower = normalizeAuthErrorMessage(message).toLowerCase();
   return (
     lower.includes("provider is not enabled") ||
     lower.includes("unsupported provider") ||
-    lower.includes("anonymous sign-ins are disabled")
+    lower.includes("anonymous sign-ins are disabled") ||
+    lower.includes("email signups are disabled")
   );
-}
-
-function providerHint(provider: "anonymous" | "google" | "email"): string {
-  const labels = {
-    anonymous: "Anonymous",
-    google: "Google",
-    email: "Email",
-  };
-  return `${labels[provider]} sign-in is disabled in Supabase. Enable it under Authentication → Providers → ${labels[provider]}, or the app will use guest mode automatically.`;
 }
 
 async function createGuestSession(
@@ -75,21 +76,24 @@ export async function ensureAuth(): Promise<AuthResult> {
 
   if (session) return { ok: true };
 
+  const guest = await createGuestSession(supabase);
+  if (guest.ok) return guest;
+
   const { data, error } = await supabase.auth.signInAnonymously();
 
   if (!error && data.session) return { ok: true };
 
-  if (error && isProviderDisabledError(error.message)) {
-    return createGuestSession(supabase);
-  }
-
   if (error) {
-    const guest = await createGuestSession(supabase);
-    if (guest.ok) return guest;
-    return { ok: false, error: error.message };
+    if (isProviderDisabledError(error.message)) {
+      return guest;
+    }
+    return {
+      ok: false,
+      error: normalizeAuthErrorMessage(error.message),
+    };
   }
 
-  return createGuestSession(supabase);
+  return guest;
 }
 
 export function useAuth() {
@@ -105,11 +109,12 @@ export async function signInWithGoogle(next = "/disclaimer"): Promise<AuthResult
   });
 
   if (error) {
+    if (isProviderDisabledError(error.message)) {
+      return ensureAuth();
+    }
     return {
       ok: false,
-      error: isProviderDisabledError(error.message)
-        ? providerHint("google")
-        : error.message,
+      error: normalizeAuthErrorMessage(error.message),
     };
   }
 
@@ -125,11 +130,12 @@ export async function signInWithEmail(email: string, next = "/disclaimer"): Prom
   });
 
   if (error) {
+    if (isProviderDisabledError(error.message)) {
+      return ensureAuth();
+    }
     return {
       ok: false,
-      error: isProviderDisabledError(error.message)
-        ? providerHint("email")
-        : error.message,
+      error: normalizeAuthErrorMessage(error.message),
     };
   }
 

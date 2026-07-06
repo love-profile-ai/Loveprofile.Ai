@@ -122,44 +122,39 @@ function analyzeOwnFeelings(answers: Answer[]): AnalysisReport {
     answers.length >= 12 ? emotionalIntensity : emotionalIntensity - 2
   );
 
-  return {
-    summary: `Based on your answers, your connection with this ${role.replace(/_/g, " ")} shows ${emotionalIntensity >= 6 ? "meaningful" : "some"} emotional pull. You interact ${frequency.replace(/_/g, " ")}, and your self-reported feeling type is "${feelingType.replace(/_/g, " ")}". This report reflects patterns in your responses — not a guarantee about what you "should" feel.`,
-    relationship_stage,
+  const what_we_noticed = [
     interest_level,
-    communication_analysis: `You ${frequency === "daily" || frequency === "several_times_week" ? "stay in regular contact" : "connect less often"}, which ${frequency === "rarely" ? "can make feelings feel abstract" : "gives your bond room to grow"}. Attraction reads as ${attraction.replace(/_/g, " ")}.`,
-    emotional_signals: `Thinking about them (${thinkScore}/10), excitement to see them (${excitedScore}/10), and missing them (${miss.replace(/_/g, " ")}) together paint a picture of ${emotionalIntensity >= 6 ? "real emotional presence" : "lighter or early-stage attachment"}.`,
-    attachment_style: comfortScore >= 7 && trustScore >= 7
-      ? "You likely lean secure when with them — openness and trust both show up"
-      : comfortScore >= 5
-        ? "Some secure signals, with normal hesitation about vulnerability"
-        : "You may be cautious or still testing how safe the connection feels",
-    mixed_signals,
+    `You ${frequency === "daily" || frequency === "several_times_week" ? "stay in regular contact" : "connect less often"}, which ${frequency === "rarely" ? "can make feelings feel abstract" : "gives your bond room to grow"}. Attraction reads as ${attraction.replace(/_/g, " ")}.`,
+    `Thinking about them (${thinkScore}/10), excitement to see them (${excitedScore}/10), and missing them (${miss.replace(/_/g, " ")}) together suggest ${emotionalIntensity >= 6 ? "real emotional presence" : "lighter or early-stage attachment"}.`,
+    mixed_signals.length
+      ? mixed_signals[0]
+      : null,
+  ].filter((s): s is string => Boolean(s));
+
+  const gentle_next_steps = [
+    "Notice whether your feelings grow with time and contact, or fade when you're apart",
+    "Pay attention to whether you want exclusivity, or mainly enjoy their company",
+    ifConfessed === "need_time"
+      ? "It's okay to ask for time — clarity beats rushing a label"
+      : "Consider what you'd want if they felt the same way tomorrow",
+    "Talk to someone you trust if the feelings feel heavy or confusing",
+  ];
+
+  const looking_ahead =
+    ifConfessed === "say_yes"
+      ? "If they opened up romantically, you seem emotionally prepared to explore it — but only you can know if that feels right."
+      : ifConfessed === "need_time"
+        ? "You'd likely want clarity before deciding — pacing matters to you."
+        : "A direct confession might surface questions about what you truly want long term.";
+
+  return {
+    summary: `Based on your answers, your connection with this ${role.replace(/_/g, " ")} shows ${emotionalIntensity >= 6 ? "meaningful" : "some"} emotional pull. You interact ${frequency.replace(/_/g, " ")}, and you describe the feeling as "${feelingType.replace(/_/g, " ")}". This reflects patterns in your responses — not a guarantee about what you should feel.`,
+    confidence: conf,
     green_flags,
     red_flags,
-    behavior_patterns: `You ${timeScore >= 6 ? "invest time" : "keep some distance"}, ${remember !== "never" ? "track details about them" : "focus more on the big picture"}, and ${future !== "never" ? "sometimes imagine shared futures" : "stay mostly in the present"}.`,
-    probability_estimate,
-    future_outlook: ifConfessed === "say_yes"
-      ? "If they opened up romantically, you seem emotionally prepared to explore it"
-      : ifConfessed === "need_time"
-        ? "You'd likely want clarity before deciding — pacing matters to you"
-        : "A direct confession might surface questions about what you truly want long term",
-    possible_misunderstandings: [
-      feelingType === "unsure"
-        ? "Labeling the feeling too early can create pressure — your answers show genuine uncertainty"
-        : "Strong care can be mistaken for romantic love, especially in close friendships",
-      datingReaction === "not_sure"
-        ? "How you'd react if they dated someone else is unclear — that's worth sitting with"
-        : "",
-    ].filter(Boolean),
-    advice: [
-      "Notice whether your feelings grow with time and contact, or fade when you're apart",
-      "Pay attention to whether you want exclusivity, or mainly enjoy their company",
-      ifConfessed === "need_time"
-        ? "It's okay to ask for time — clarity beats rushing a label"
-        : "Consider what you'd want if they felt the same way tomorrow",
-      "Talk to someone you trust if the feelings feel heavy or confusing",
-    ],
-    confidence: conf,
+    what_we_noticed,
+    gentle_next_steps,
+    looking_ahead,
   };
 }
 
@@ -240,45 +235,37 @@ function analyzeTheirInterest(answers: Answer[]): AnalysisReport {
 
   const conf = confidence(answers.length >= 12 ? interestScore : interestScore - 2);
 
+  const what_we_noticed = [
+    interest_level,
+    `${initiator === "mostly_them" ? "They often start conversations" : initiator === "mostly_me" ? "You usually reach out first" : "Initiation feels balanced"}. You interact ${frequency.replace(/_/g, " ")}.`,
+    `Emotional openness (${openness}/10) and how happy they seem to see you (${happyScore}/10) ${happyScore >= 6 ? "suggest warmth" : "feel neutral or hard to read"}.`,
+    mixed_signals.length ? mixed_signals[0] : null,
+  ].filter((s): s is string => Boolean(s));
+
+  const gentle_next_steps = [
+    "Compare their behavior with you vs. with others — consistency matters",
+    "Look for sustained effort over weeks, not one intense moment",
+    inRelationship === "yes"
+      ? "Respect their existing relationship while you interpret signals"
+      : "If you want clarity, a direct but kind conversation beats guessing",
+    "Protect your peace — mixed signals deserve patience, not self-blame",
+  ];
+
+  const looking_ahead =
+    expressed === "yes" || guess === "definitely_romantic"
+      ? "A honest conversation about intentions could bring clarity — if you want it."
+      : interestScore >= 6
+        ? "Watch whether romantic gestures increase over time, or stay consistently friendly."
+        : "Without clearer signals, assuming friendship may be the safest read.";
+
   return {
     summary: `You asked whether someone in your life (${role.replace(/_/g, " ")}) may have romantic feelings. Their engagement (${engagement}/10), effort (${reciprocity}/10 reciprocity), and your overall guess ("${guess.replace(/_/g, " ")}") suggest ${interestScore >= 6 ? "meaningful" : "moderate or unclear"} interest — but no analysis can read another person's heart with certainty.`,
-    relationship_stage,
-    interest_level,
-    communication_analysis: `${initiator === "mostly_them" ? "They often start conversations" : initiator === "mostly_me" ? "You usually reach out first" : "Initiation feels balanced"}. You interact ${frequency.replace(/_/g, " ")}.`,
-    emotional_signals: `Emotional openness (${openness}/10) and how happy they seem to see you (${happyScore}/10) ${happyScore >= 6 ? "suggest warmth" : "feel neutral or hard to read"}.`,
-    attachment_style: trust === "yes" && openness >= 6
-      ? "They seem willing to be vulnerable with you — a sign of trust"
-      : trust === "sometimes"
-        ? "Trust appears situational — they share selectively"
-        : "Emotional access may still be limited",
-    mixed_signals,
+    confidence: conf,
     green_flags,
     red_flags,
-    behavior_patterns: `They ${compliments !== "never" ? "give compliments" : "rarely compliment"}, ${introduced === "yes" ? "include you socially" : "haven't fully integrated you into their circle yet"}, and ${upset !== "ignore" ? "respond when you're upset" : "may pull back when you're struggling"}.`,
-    probability_estimate,
-    future_outlook: expressed === "yes" || guess === "definitely_romantic"
-      ? "A honest conversation about intentions could bring clarity — if you want it"
-      : interestScore >= 6
-        ? "Watch whether romantic gestures increase over time, or stay consistently friendly"
-        : "Without clearer signals, assuming friendship may be the safest read",
-    possible_misunderstandings: [
-      "Friendly people can seem flirty without romantic intent",
-      initiator === "mostly_them"
-        ? "Someone who texts first isn't always in love — they may simply enjoy your company"
-        : "If you always initiate, their warmth might reflect comfort, not pursuit",
-      jealousy === "sometimes"
-        ? "Occasional jealousy can mean care, but isn't proof of romance"
-        : "",
-    ].filter(Boolean),
-    advice: [
-      "Compare their behavior with you vs. with others — consistency matters",
-      "Look for sustained effort over weeks, not one intense moment",
-      inRelationship === "yes"
-        ? "Respect their existing relationship while you interpret signals"
-        : "If you want clarity, a direct but kind conversation beats guessing",
-      "Protect your peace — mixed signals deserve patience, not self-blame",
-    ],
-    confidence: conf,
+    what_we_noticed,
+    gentle_next_steps,
+    looking_ahead,
   };
 }
 
@@ -295,10 +282,10 @@ export async function generateChatResponse(
     return `Based on your report, key signals include: ${analysis.green_flags.slice(0, 2).join("; ") || "the patterns in your original answers"}. Remember — one gesture rarely proves romantic intent on its own. Look for consistency across time.`;
   }
   if (lower.includes("should i") || lower.includes("what do i do")) {
-    return `${analysis.advice[0]} ${analysis.advice[1]} Your report also noted: ${analysis.probability_estimate}`;
+    return `${analysis.gentle_next_steps[0]} ${analysis.gentle_next_steps[1] ?? ""} ${analysis.looking_ahead}`.trim();
   }
   if (lower.includes("love") || lower.includes("like me")) {
-    return `Your analysis suggests: ${analysis.interest_level}. ${analysis.probability_estimate} Confidence in this read: ${analysis.confidence}.`;
+    return `${analysis.what_we_noticed[0] ?? analysis.summary} Confidence in this read: ${analysis.confidence}.`;
   }
 
   return `Reflecting on your ${path === "i_like_someone" ? "feelings" : "situation"}: ${analysis.summary.slice(0, 200)}… What part would you like to explore — their behavior, your feelings, or next steps?`;
