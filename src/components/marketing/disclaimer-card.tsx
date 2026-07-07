@@ -32,18 +32,21 @@ export function DisclaimerCard({
   }
 
   return (
-    <div className={cn("w-full max-w-xl text-left", className)}>
-      <div className="glass-card overflow-hidden">
-        <div className="border-b border-primary/15 bg-gradient-to-r from-primary/10 via-pink-100/40 to-rose-100/30 px-6 py-4 dark:from-primary/15 dark:via-primary/5 dark:to-transparent">
+    <div className={cn("w-full max-w-2xl text-left", className)}>
+      <div className="premium-card overflow-hidden">
+        <div className="border-b border-primary/12 bg-gradient-to-r from-primary/10 via-blush/50 to-gold/10 px-6 py-5 dark:from-primary/16 dark:via-white/[0.035] dark:to-gold/8">
           <div className="flex items-center gap-2.5">
-            <span className="flex size-8 items-center justify-center rounded-lg bg-white/80 shadow-sm dark:bg-card/80">
+            <span className="flex size-10 items-center justify-center rounded-2xl bg-white/70 shadow-sm dark:bg-white/[0.07]">
               <Info className="size-4 text-primary" strokeWidth={2.25} />
             </span>
-            <h2 className="text-section-title text-primary/80">Quick Disclaimer</h2>
+            <div>
+              <p className="text-label">Before you begin</p>
+              <h2 className="font-display text-xl font-semibold">Quick Disclaimer</h2>
+            </div>
           </div>
         </div>
 
-        <div className="max-h-48 overflow-y-auto px-6 py-5 text-[0.9rem] font-medium leading-[1.7] tracking-[0.01em] text-foreground/65">
+        <div className="max-h-56 overflow-y-auto px-6 py-6 text-[0.95rem] font-medium leading-[1.85] tracking-[0.01em] text-foreground/66">
           {DISCLAIMER_TEXT.split("\n\n").map((paragraph) => (
             <p key={paragraph.slice(0, 40)} className="mb-3.5 last:mb-0">
               {paragraph}
@@ -95,7 +98,7 @@ export function DisclaimerCard({
         size="lg"
         disabled={!agreed}
         onClick={handleContinue}
-        className="btn-cta text-btn-label mt-6 h-12 w-full rounded-xl text-base tracking-wide disabled:opacity-60 sm:rounded-full"
+        className="btn-cta mt-6 h-12 w-full text-base disabled:opacity-60"
       >
         Continue Assessment
         <ArrowRight className="ml-2 size-4" />

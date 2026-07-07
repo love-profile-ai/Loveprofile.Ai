@@ -1,15 +1,15 @@
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import { Heart, LayoutDashboard } from "lucide-react";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 
 export function AppHeader() {
   return (
-    <header className="flex items-center justify-between py-5">
+    <header className="sticky top-4 z-30 mb-6 flex items-center justify-between rounded-full border border-white/55 bg-white/65 px-4 py-3 shadow-xl shadow-primary/8 backdrop-blur-2xl dark:border-white/10 dark:bg-white/[0.055] dark:shadow-black/30">
       <Link
         href="/"
-        className="flex items-center gap-2 font-display text-lg font-bold tracking-tight text-foreground"
+        className="flex items-center gap-2.5 font-display text-lg font-semibold tracking-tight text-foreground"
       >
-        <span className="flex size-8 items-center justify-center rounded-full bg-primary/10">
+        <span className="flex size-9 items-center justify-center rounded-full border border-primary/15 bg-primary/10 shadow-inner shadow-primary/10">
           <Heart className="size-4 fill-primary text-primary" />
         </span>
         Signal
@@ -18,8 +18,9 @@ export function AppHeader() {
         <ThemeToggle />
         <Link
           href="/dashboard"
-          className="text-label text-primary/80 hover:text-primary"
+          className="inline-flex items-center gap-1.5 rounded-full px-2 text-[11px] font-bold uppercase tracking-[0.2em] text-primary/80 transition-colors hover:text-primary"
         >
+          <LayoutDashboard className="size-3.5" />
           Dashboard
         </Link>
       </div>

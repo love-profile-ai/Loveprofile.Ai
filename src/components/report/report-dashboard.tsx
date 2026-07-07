@@ -180,23 +180,39 @@ export function ReportDashboard({ report }: { report: ReportRecord }) {
         <div className="pointer-events-none absolute -left-20 top-1/3 size-64 rounded-full report-blob-green blur-2xl" />
         <div className="pointer-events-none absolute -right-16 bottom-20 size-56 rounded-full report-blob-orange blur-2xl" />
 
-        <div className="relative p-6 sm:p-10">
-          <div className="flex items-center gap-2 text-sm font-semibold text-primary/80">
-            <Sparkles className="size-4" />
+        <div className="relative p-6 sm:p-10 lg:p-12">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/8 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-primary/80">
+            <Sparkles className="size-3.5" />
             Relationship Analysis Report
           </div>
 
-          <div className="mt-6 flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
-            <div className="max-w-2xl flex-1">
-              <h1 className="flex items-center gap-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">
+          <div className="mt-8 grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
+            <div className="max-w-2xl">
+              <h1 className="flex items-center gap-2 font-display text-4xl font-semibold leading-tight tracking-[-0.04em] sm:text-5xl">
                 {themeTitle}
                 <Heart className="size-6 fill-primary/20 text-primary" />
               </h1>
-              <p className="mt-4 text-base font-medium leading-relaxed text-foreground/70 sm:text-lg">
+              <p className="mt-5 text-base font-medium leading-8 text-foreground/70 sm:text-lg">
                 {analysis.summary}
               </p>
-              <div className="mt-8">
-                <ConfidenceMeter confidence={analysis.confidence} variant="ring" />
+              <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                <div className="rounded-[1.5rem] border border-primary/12 bg-white/45 p-5 backdrop-blur-xl dark:bg-white/[0.045]">
+                  <p className="text-label">Confidence</p>
+                  <div className="mt-4">
+                    <ConfidenceMeter confidence={analysis.confidence} variant="ring" />
+                  </div>
+                </div>
+                <div className="rounded-[1.5rem] border border-gold/18 bg-gold/8 p-5 backdrop-blur-xl">
+                  <p className="text-label">Compatibility radar</p>
+                  <div className="relative mx-auto mt-5 grid size-40 place-items-center rounded-full border border-primary/12 bg-[radial-gradient(circle,var(--background)_0_32%,transparent_33%),conic-gradient(from_180deg,var(--primary),var(--coral),var(--gold),var(--primary))] p-5 opacity-90">
+                    <div className="size-24 rounded-full border border-white/60 bg-white/70 shadow-inner backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.08]" />
+                    <div className="absolute inset-7 rounded-full border border-white/50 dark:border-white/10" />
+                    <div className="absolute inset-12 rounded-full border border-white/40 dark:border-white/10" />
+                  </div>
+                  <p className="mt-4 text-center text-xs font-bold uppercase tracking-[0.18em] text-foreground/48">
+                    Signals mapped
+                  </p>
+                </div>
               </div>
             </div>
             <ConfidenceBarsDecor />
@@ -204,7 +220,7 @@ export function ReportDashboard({ report }: { report: ReportRecord }) {
 
           {(greenFlags.shown.length > 0 || redFlags.shown.length > 0) && (
             <div className="mt-10 grid gap-5 md:grid-cols-2">
-              <div className="relative overflow-hidden rounded-2xl border border-green-200/50 bg-green-50/50 p-6 dark:border-green-900/30 dark:bg-green-950/25">
+              <div className="relative overflow-hidden rounded-[1.5rem] border border-emerald-200/45 bg-emerald-50/45 p-6 shadow-lg shadow-emerald-900/5 dark:border-emerald-500/15 dark:bg-emerald-400/8">
                 <div className="pointer-events-none absolute -bottom-8 -right-8 size-32 rounded-full bg-green-200/30 blur-2xl" />
                 <SectionHeader
                   icon={Flag}
@@ -221,7 +237,7 @@ export function ReportDashboard({ report }: { report: ReportRecord }) {
                 </div>
               </div>
 
-              <div className="relative overflow-hidden rounded-2xl border border-red-200/50 bg-red-50/40 p-6 dark:border-red-900/30 dark:bg-red-950/20">
+              <div className="relative overflow-hidden rounded-[1.5rem] border border-rose-200/45 bg-rose-50/40 p-6 shadow-lg shadow-rose-900/5 dark:border-rose-500/15 dark:bg-rose-400/8">
                 <div className="pointer-events-none absolute -bottom-8 -right-8 size-32 rounded-full bg-red-200/30 blur-2xl" />
                 <SectionHeader
                   icon={Flag}
@@ -241,21 +257,21 @@ export function ReportDashboard({ report }: { report: ReportRecord }) {
           )}
 
           {noticedText && (
-            <div className="relative mt-8 overflow-hidden rounded-2xl border border-violet-200/40 bg-violet-50/30 p-6 dark:border-violet-900/30 dark:bg-violet-950/15">
+            <div className="relative mt-8 overflow-hidden rounded-[1.5rem] border border-primary/14 bg-white/42 p-6 shadow-lg shadow-primary/6 backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.045]">
               <div className="pointer-events-none absolute -bottom-10 -right-10 size-40 rounded-full bg-violet-200/25 blur-2xl" />
               <SectionHeader
                 icon={Eye}
                 title="What We Noticed"
                 iconClass="bg-violet-500"
               />
-              <p className="relative mt-4 text-base font-medium leading-relaxed text-foreground/75">
+              <p className="relative mt-4 text-base font-medium leading-8 text-foreground/75">
                 {noticedText}
               </p>
             </div>
           )}
 
           {nextSteps.shown.length > 0 && (
-            <div className="mt-8 overflow-hidden rounded-2xl border border-sky-200/40 bg-sky-50/35 p-6 dark:border-sky-900/30 dark:bg-sky-950/15">
+            <div className="mt-8 overflow-hidden rounded-[1.5rem] border border-gold/18 bg-gold/8 p-6 backdrop-blur-xl">
               <SectionHeader
                 icon={Rocket}
                 title="Gentle Next Steps"
@@ -271,7 +287,7 @@ export function ReportDashboard({ report }: { report: ReportRecord }) {
                         "lg:border-l lg:border-dashed lg:border-sky-300/60 dark:lg:border-sky-800/50"
                     )}
                   >
-                    <p className="font-display text-2xl font-bold text-sky-600/80 dark:text-sky-400/80">
+                    <p className="font-display text-2xl font-semibold text-primary/80">
                       {String(i + 1).padStart(2, "0")}
                     </p>
                     <p className="mt-2 text-sm font-medium leading-relaxed text-foreground/75">
@@ -289,7 +305,7 @@ export function ReportDashboard({ report }: { report: ReportRecord }) {
           )}
 
           {analysis.looking_ahead && (
-            <div className="relative mt-8 overflow-hidden rounded-2xl border border-orange-200/45 bg-orange-50/35 p-6 dark:border-orange-900/30 dark:bg-orange-950/15">
+            <div className="relative mt-8 overflow-hidden rounded-[1.5rem] border border-coral/20 bg-coral/8 p-6 backdrop-blur-xl">
               <div className="pointer-events-none absolute -bottom-10 -right-10 size-40 rounded-full bg-orange-200/30 blur-2xl" />
               <SectionHeader
                 icon={TrendingUp}

@@ -20,9 +20,9 @@ function StructuredInput({ question, value, onChange }: QuestionInputProps) {
               key={option.value}
               variant={value === option.value ? "default" : "outline"}
               className={cn(
-                "text-btn-label h-auto justify-start rounded-xl px-4 py-4 text-left text-base font-semibold",
+                "h-auto justify-start rounded-2xl px-5 py-5 text-left text-base font-semibold leading-relaxed",
                 value === option.value &&
-                  "ring-2 ring-primary/35 shadow-md shadow-primary/15 dark:ring-primary/60 dark:shadow-lg dark:shadow-primary/35"
+                  "ring-2 ring-primary/35 shadow-lg shadow-primary/15 dark:ring-primary/55 dark:shadow-primary/28"
               )}
               onClick={() => onChange(option.value)}
             >
@@ -43,9 +43,9 @@ function StructuredInput({ question, value, onChange }: QuestionInputProps) {
               key={String(option.value)}
               variant={value === option.value ? "default" : "outline"}
               className={cn(
-                "text-btn-label flex-1 rounded-xl py-6 text-base font-semibold",
+                "flex-1 rounded-2xl py-7 text-base font-semibold",
                 value === option.value &&
-                  "ring-2 ring-primary/35 shadow-md shadow-primary/15 dark:ring-primary/60 dark:shadow-lg dark:shadow-primary/35"
+                  "ring-2 ring-primary/35 shadow-lg shadow-primary/15 dark:ring-primary/55 dark:shadow-primary/28"
               )}
               onClick={() => onChange(option.value)}
             >
@@ -61,10 +61,10 @@ function StructuredInput({ question, value, onChange }: QuestionInputProps) {
       const hasValue = typeof value === "number";
       const current = hasValue ? value : min;
       return (
-        <div className="space-y-4">
+        <div className="space-y-5 rounded-2xl border border-primary/10 bg-white/35 p-5 backdrop-blur-xl dark:bg-white/[0.04]">
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>{min}</span>
-            <span className="text-3xl font-bold text-foreground">{current}</span>
+            <span className="font-display text-5xl font-semibold text-primary">{current}</span>
             <span>{max}</span>
           </div>
           <input
@@ -92,9 +92,9 @@ function StructuredInput({ question, value, onChange }: QuestionInputProps) {
               key={option.value}
               variant={value === option.value ? "default" : "outline"}
               className={cn(
-                "text-btn-label h-auto justify-start gap-3 rounded-xl px-4 py-4 text-left text-base font-semibold",
+                "h-auto justify-start gap-4 rounded-2xl px-5 py-5 text-left text-base font-semibold leading-relaxed",
                 value === option.value &&
-                  "ring-2 ring-primary/35 shadow-md shadow-primary/15 dark:ring-primary/60 dark:shadow-lg dark:shadow-primary/35"
+                  "ring-2 ring-primary/35 shadow-lg shadow-primary/15 dark:ring-primary/55 dark:shadow-primary/28"
               )}
               onClick={() => onChange(option.value)}
             >

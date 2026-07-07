@@ -20,14 +20,14 @@ function LoginContent() {
   }, [router, next]);
 
   return (
-    <div className="landing-canvas relative min-h-screen overflow-hidden">
+    <div className="landing-canvas">
       <div className="dot-grid pointer-events-none absolute inset-0 -z-10" />
       <div className="page-glow pointer-events-none absolute inset-0 -z-10" />
 
-      <div className="relative mx-auto w-full max-w-6xl px-4 sm:px-6">
-        <LandingNavbar />
+      <LandingNavbar />
 
-        <section className="flex min-h-[calc(100vh-5rem)] flex-col items-center justify-center py-12">
+      <div className="relative mx-auto w-full max-w-6xl px-4 sm:px-6">
+        <section className="flex min-h-[calc(100vh-7rem)] flex-col items-center justify-center py-12">
           <LoginForm />
         </section>
       </div>

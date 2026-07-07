@@ -191,9 +191,14 @@ export function QuestionEngine({
   if (analyzing) {
     return (
       <div className="flex flex-col items-center justify-center py-32 text-center">
-        <Loader2 className="mb-4 size-10 animate-spin text-primary" />
-        <h2 className="font-display text-2xl font-bold">Analyzing your responses</h2>
-        <p className="text-lead mt-3 max-w-md">
+        <div className="relative mb-8 flex size-24 items-center justify-center rounded-full border border-primary/15 bg-white/55 shadow-2xl shadow-primary/15 backdrop-blur-2xl dark:bg-white/[0.06]">
+          <div className="absolute inset-0 animate-ping rounded-full bg-primary/10" />
+          <Loader2 className="relative size-9 animate-spin text-primary" />
+        </div>
+        <h2 className="font-display text-3xl font-semibold tracking-[-0.02em]">
+          Analyzing your responses
+        </h2>
+        <p className="text-lead mt-4 max-w-md">
           Reading your answers and building your personalized report.
         </p>
       </div>
@@ -203,7 +208,7 @@ export function QuestionEngine({
   if (!question) return null;
 
   return (
-    <div className="mt-8">
+    <div className="mx-auto mt-8 max-w-3xl">
       <ProgressBar current={progress.current} total={progress.total} />
 
       <AnimatePresence mode="wait">
@@ -212,14 +217,13 @@ export function QuestionEngine({
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.25 }}
+          transition={{ duration: 0.32, ease: "easeOut" }}
           className="mt-10"
         >
-          <h2 className="text-question">
-            {question.text}
-          </h2>
+          <p className="text-label">Question {progress.current}</p>
+          <h2 className="text-question mt-3">{question.text}</h2>
 
-          <div className="mt-8 glass-card p-5 sm:p-6">
+          <div className="premium-card mt-8 p-4 sm:p-6">
             <QuestionInput
               key={currentId}
               question={question}
@@ -229,19 +233,19 @@ export function QuestionEngine({
           </div>
 
           {!canContinue && (
-            <p className="mt-4 text-sm font-medium text-primary/70">
+            <p className="mt-4 rounded-2xl border border-primary/12 bg-primary/7 px-4 py-3 text-sm font-semibold text-primary/80">
               Please select an answer before continuing.
             </p>
           )}
 
           {error && (
-            <p className="mt-4 text-sm text-destructive">{error}</p>
+            <p className="mt-4 rounded-2xl border border-destructive/20 bg-destructive/8 px-4 py-3 text-sm font-semibold text-destructive">{error}</p>
           )}
 
           <div className="mt-8 flex justify-end">
             <Button
               size="lg"
-              className="btn-cta text-btn-label rounded-full px-8 tracking-wide"
+              className="btn-cta px-8"
               disabled={!canContinue || loading}
               onClick={handleContinue}
             >
