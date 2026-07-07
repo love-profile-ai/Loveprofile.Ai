@@ -2,9 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
-export async function middleware(request: NextRequest) {
-  const response = await updateSession(request);
-
+function securityHeaders(response: NextResponse) {
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -12,8 +10,17 @@ export async function middleware(request: NextRequest) {
     "Permissions-Policy",
     "camera=(), microphone=(), geolocation=()"
   );
-
   return response;
+}
+
+export async function proxy(request: NextRequest) {
+  try {
+    const response = await updateSession(request);
+    return securityHeaders(response);
+  } catch (error) {
+    console.error("Proxy error:", error);
+    return securityHeaders(NextResponse.next({ request }));
+  }
 }
 
 export const config = {
