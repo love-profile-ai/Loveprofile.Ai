@@ -42,7 +42,7 @@ export function LandingNavbar() {
         >
           Sign in
         </Link>
-        <Link href="/login">
+        <Link href="/login?start=1">
           <Button size="sm" variant="outline" className="rounded-full border-primary/25 px-4 font-semibold">
             Get started
           </Button>

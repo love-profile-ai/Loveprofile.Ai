@@ -96,7 +96,15 @@ export default function DashboardPage() {
                 onClick={async () => {
                   setAuthError(null);
                   const result = await signInWithGoogle("/dashboard");
-                  if (!result.ok) setAuthError(result.error);
+                  if (!result.ok) {
+                    setAuthError(result.error);
+                    return;
+                  }
+                  if (result.method === "guest") {
+                    const supabase = createClient();
+                    const { data: { user } } = await supabase.auth.getUser();
+                    setUserEmail(user?.email ?? null);
+                  }
                 }}
               >
                 Continue with Google
@@ -108,11 +116,17 @@ export default function DashboardPage() {
                     e.preventDefault();
                     setAuthError(null);
                     const result = await signInWithEmail(email, "/dashboard");
-                    if (result.ok) {
-                      setEmailSent(true);
-                    } else {
+                    if (!result.ok) {
                       setAuthError(result.error);
+                      return;
                     }
+                    if (result.method === "guest") {
+                      const supabase = createClient();
+                      const { data: { user } } = await supabase.auth.getUser();
+                      setUserEmail(user?.email ?? null);
+                      return;
+                    }
+                    setEmailSent(true);
                   }}
                 >
                   <input
@@ -137,7 +151,13 @@ export default function DashboardPage() {
                   className="text-btn-label"
                   onClick={async () => {
                     setAuthError(null);
-                    await signOut();
+                    const result = await signOut();
+                    if (result.ok) {
+                      setUserEmail(null);
+                      setEmailSent(false);
+                    } else {
+                      setAuthError(result.error);
+                    }
                   }}
                 >
                   Sign out

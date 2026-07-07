@@ -1,14 +1,40 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
+function safeNextPath(next: string | null): string {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) {
+    return "/disclaimer";
+  }
+  return next;
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/disclaimer";
+  const errorParam = searchParams.get("error_description") ?? searchParams.get("error");
+  const next = safeNextPath(searchParams.get("next"));
 
-  if (code) {
-    const supabase = await createClient();
-    await supabase.auth.exchangeCodeForSession(code);
+  if (errorParam) {
+    const message = encodeURIComponent(errorParam);
+    return NextResponse.redirect(
+      `${origin}/login?next=${encodeURIComponent(next)}&error=${message}`
+    );
+  }
+
+  if (!code) {
+    return NextResponse.redirect(
+      `${origin}/login?next=${encodeURIComponent(next)}&error=${encodeURIComponent("Missing sign-in code. Please try again.")}`
+    );
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+  if (error) {
+    console.error("Auth callback error:", error);
+    return NextResponse.redirect(
+      `${origin}/login?next=${encodeURIComponent(next)}&error=${encodeURIComponent("Sign-in link expired or is invalid. Please try again.")}`
+    );
   }
 
   return NextResponse.redirect(`${origin}${next}`);

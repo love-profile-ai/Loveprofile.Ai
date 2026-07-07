@@ -6,7 +6,6 @@ import { DisclaimerGuard } from "@/components/marketing/disclaimer-guard";
 import { AnalyzePathSection } from "@/components/marketing/analyze-path-section";
 import { AppHeader } from "@/components/shared/app-header";
 import { ensureAuth } from "@/hooks/use-auth";
-import { createLocalSession } from "@/lib/local-session";
 import type { AnalysisPath } from "@/types/questionnaire";
 
 export default function AnalyzePage() {
@@ -15,28 +14,31 @@ export default function AnalyzePage() {
 
   async function startAnalysis(path: AnalysisPath) {
     setLoading(path);
-    const localId = crypto.randomUUID();
     const auth = await ensureAuth();
 
-    if (auth.ok) {
-      try {
-        const res = await fetch("/api/reports", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ path }),
-        });
-        if (res.ok) {
-          const { sessionId } = await res.json();
-          router.push(`/analyze/${sessionId}?path=${path}`);
-          setLoading(null);
-          return;
-        }
-      } catch {
-        // Fall through to local session
-      }
+    if (!auth.ok) {
+      router.push(`/login?start=1&next=${encodeURIComponent("/analyze")}`);
+      setLoading(null);
+      return;
     }
 
-    createLocalSession(localId, path);
+    try {
+      const res = await fetch("/api/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path }),
+      });
+      if (res.ok) {
+        const { sessionId } = await res.json();
+        router.push(`/analyze/${sessionId}?path=${path}`);
+        setLoading(null);
+        return;
+      }
+    } catch {
+      // Fall through to local session
+    }
+
+    const localId = crypto.randomUUID();
     router.push(`/analyze/${localId}?path=${path}&local=1`);
     setLoading(null);
   }

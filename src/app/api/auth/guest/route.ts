@@ -14,8 +14,26 @@ function authErrorMessage(error: { message?: string }): string {
   }
 }
 
+function missingConfigResponse() {
+  return NextResponse.json(
+    {
+      error:
+        "Server auth is not configured. Set NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, and SUPABASE_SERVICE_ROLE_KEY in your deployment settings.",
+    },
+    { status: 503 }
+  );
+}
+
 export async function POST(request: Request) {
   try {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+
+    if (!url || !anonKey || !serviceKey) {
+      return missingConfigResponse();
+    }
+
     const ip =
       request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
       request.headers.get("x-real-ip") ??
@@ -66,7 +84,21 @@ export async function POST(request: Request) {
       );
     }
 
-    const { data: verified, error: verifyError } = await admin.auth.verifyOtp({
+    const cookieStore = await cookies();
+    const supabase = createServerClient(url, anonKey, {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          );
+        },
+      },
+    });
+
+    const { data: verified, error: verifyError } = await supabase.auth.verifyOtp({
       token_hash: tokenHash,
       type: "email",
     });
@@ -84,24 +116,6 @@ export async function POST(request: Request) {
     }
 
     const session = verified.session;
-
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          },
-        },
-      }
-    );
 
     const { error: sessionError } = await supabase.auth.setSession({
       access_token: session.access_token,
@@ -121,6 +135,9 @@ export async function POST(request: Request) {
     console.error("Guest auth error:", error);
     const message =
       error instanceof Error ? error.message : "Guest authentication failed";
+    if (message.includes("admin credentials are not configured")) {
+      return missingConfigResponse();
+    }
     return NextResponse.json({ error: message }, { status: 503 });
   }
 }
