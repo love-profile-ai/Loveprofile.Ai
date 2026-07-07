@@ -10,5 +10,11 @@ export function createClient() {
     );
   }
 
-  return createBrowserClient(url ?? "", key ?? "");
+  return createBrowserClient(url ?? "", key ?? "", {
+    auth: {
+      // PKCE is required for OAuth with @supabase/ssr — the code verifier is
+      // stored in a cookie and read back in the /auth/callback route handler.
+      flowType: "pkce",
+    },
+  });
 }

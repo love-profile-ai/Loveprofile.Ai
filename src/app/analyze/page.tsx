@@ -6,6 +6,7 @@ import { DisclaimerGuard } from "@/components/marketing/disclaimer-guard";
 import { AnalyzePathSection } from "@/components/marketing/analyze-path-section";
 import { AppHeader } from "@/components/shared/app-header";
 import { ensureAuth } from "@/hooks/use-auth";
+import { createLocalSession } from "@/lib/local-session";
 import type { AnalysisPath } from "@/types/questionnaire";
 
 export default function AnalyzePage() {
@@ -17,7 +18,9 @@ export default function AnalyzePage() {
     const auth = await ensureAuth();
 
     if (!auth.ok) {
-      router.push(`/login?start=1&next=${encodeURIComponent("/analyze")}`);
+      const localId = crypto.randomUUID();
+      createLocalSession(localId, path);
+      router.push(`/analyze/${localId}?path=${path}&local=1`);
       setLoading(null);
       return;
     }
@@ -39,6 +42,7 @@ export default function AnalyzePage() {
     }
 
     const localId = crypto.randomUUID();
+    createLocalSession(localId, path);
     router.push(`/analyze/${localId}?path=${path}&local=1`);
     setLoading(null);
   }

@@ -39,7 +39,7 @@ export function LandingHero() {
               Personalized reflections, just for you.
             </p>
 
-            <Link href="/login?start=1" className="mt-10">
+            <Link href="/disclaimer" className="mt-10">
               <Button
                 size="lg"
                 className="btn-cta text-btn-label h-12 rounded-full px-8 text-base shadow-lg"

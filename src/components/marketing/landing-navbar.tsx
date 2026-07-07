@@ -44,7 +44,7 @@ export function LandingNavbar() {
         >
           Sign in
         </Link>
-        <Link href="/login?start=1">
+        <Link href="/disclaimer">
           <Button size="sm" variant="outline" className="rounded-full border-primary/25 px-4 font-semibold">
             Get started
           </Button>

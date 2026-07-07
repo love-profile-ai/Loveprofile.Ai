@@ -16,6 +16,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   try {
+    // Start with a response that forwards the original request.
     let supabaseResponse = NextResponse.next({ request });
 
     const supabase = createServerClient(env.url, env.key, {
@@ -23,7 +24,14 @@ export async function updateSession(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
+        // CRITICAL: cookies must be written to BOTH request.cookies and the
+        // response so that subsequent handlers (Route Handlers, RSC) can read
+        // any updated tokens. Creating a new NextResponse inside setAll without
+        // first updating request.cookies breaks PKCE cookie forwarding on Vercel.
         setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          );
           supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
@@ -32,6 +40,8 @@ export async function updateSession(request: NextRequest) {
       },
     });
 
+    // Refresh session without blocking on the result — errors are non-fatal
+    // because the proxy must never crash an otherwise valid request.
     await supabase.auth.getUser();
 
     return supabaseResponse;
