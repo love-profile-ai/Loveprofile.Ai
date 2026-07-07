@@ -9,9 +9,9 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "border border-primary/25 bg-gradient-to-br from-primary/20 via-pink-300/35 to-rose-200/45 text-primary shadow-md shadow-primary/15 hover:from-primary/30 hover:via-pink-300/45 hover:to-rose-200/55 hover:shadow-lg hover:shadow-primary/20 active:from-primary/25 dark:from-primary/25 dark:via-pink-400/20 dark:to-rose-400/15 dark:text-primary dark:hover:from-primary/35",
+          "border border-primary/25 bg-gradient-to-br from-primary/20 via-pink-300/35 to-rose-200/45 text-primary shadow-md shadow-primary/15 hover:from-primary/30 hover:via-pink-300/45 hover:to-rose-200/55 hover:shadow-lg hover:shadow-primary/20 active:from-primary/25 dark:border-primary/50 dark:bg-gradient-to-br dark:from-primary/50 dark:via-pink-500/35 dark:to-rose-500/30 dark:text-white dark:shadow-lg dark:shadow-primary/35 dark:hover:from-primary/60 dark:hover:via-pink-500/45 dark:hover:to-rose-500/40 dark:hover:shadow-xl dark:hover:shadow-primary/45",
         outline:
-          "border-primary/25 bg-gradient-to-br from-white/90 via-pink-50/80 to-rose-50/70 text-primary hover:from-primary/10 hover:via-pink-100/90 hover:to-rose-100/80 hover:border-primary/35 aria-expanded:bg-primary/10 dark:border-primary/30 dark:from-card/90 dark:via-primary/5 dark:to-card/90 dark:text-primary dark:hover:from-primary/15 dark:hover:via-primary/10",
+          "border-primary/25 bg-gradient-to-br from-white/90 via-pink-50/80 to-rose-50/70 text-primary hover:from-primary/10 hover:via-pink-100/90 hover:to-rose-100/80 hover:border-primary/35 aria-expanded:bg-primary/10 dark:border-primary/45 dark:bg-primary/12 dark:from-primary/15 dark:via-primary/8 dark:to-primary/5 dark:text-primary dark:shadow-sm dark:shadow-primary/15 dark:hover:border-primary/60 dark:hover:bg-primary/22 dark:hover:from-primary/25 dark:hover:via-primary/15 dark:hover:to-primary/10 dark:hover:shadow-md dark:hover:shadow-primary/25",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:

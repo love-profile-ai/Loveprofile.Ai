@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 
 const links = [
   { href: "#how-it-works", label: "How it works" },
@@ -36,6 +37,7 @@ export function LandingNavbar() {
       </nav>
 
       <div className="flex items-center gap-3">
+        <ThemeToggle />
         <Link
           href="/login"
           className="hidden text-sm font-semibold text-foreground/60 hover:text-primary sm:inline"

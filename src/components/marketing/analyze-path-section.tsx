@@ -36,7 +36,8 @@ const paths = [
       "Spot emotional patterns & attachment",
       "Understand if it's love, crush, or admiration",
     ],
-    accent: "from-rose-400/20 via-pink-100/80 to-primary/10",
+    accent:
+      "from-rose-400/20 via-pink-100/80 to-primary/10 dark:from-primary/15 dark:via-primary/8 dark:to-transparent",
   },
   {
     id: "someone_likes_me" as const,
@@ -48,7 +49,8 @@ const paths = [
       "See green flags & red flags",
       "Gauge their level of interest",
     ],
-    accent: "from-primary/15 via-pink-50/90 to-rose-100/60",
+    accent:
+      "from-primary/15 via-pink-50/90 to-rose-100/60 dark:from-primary/12 dark:via-primary/6 dark:to-transparent",
   },
 ];
 
@@ -86,7 +88,7 @@ export function AnalyzePathSection({
 }) {
   return (
     <div className="relative">
-      <div className="pointer-events-none absolute -bottom-32 left-1/2 -z-10 h-96 w-[120%] -translate-x-1/2 rounded-[100%] bg-gradient-to-t from-primary/12 via-pink-100/40 to-transparent blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 left-1/2 -z-10 h-96 w-[120%] -translate-x-1/2 rounded-[100%] bg-gradient-to-t from-primary/12 via-pink-100/40 to-transparent blur-3xl dark:via-primary/10" />
       <div className="pointer-events-none absolute bottom-[18%] right-[8%] -z-10 hidden size-64 rounded-full bg-rose-200/25 blur-3xl lg:block" />
       <div className="pointer-events-none absolute bottom-[28%] left-[6%] -z-10 hidden size-48 rounded-full bg-primary/10 blur-3xl lg:block" />
 
@@ -101,7 +103,7 @@ export function AnalyzePathSection({
           transition={{ duration: 0.45 }}
           className="mt-8 text-center sm:text-left"
         >
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-primary/80 shadow-sm backdrop-blur-sm">
+          <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-primary/80 shadow-sm backdrop-blur-sm dark:bg-card/80">
             <Sparkles className="size-3" />
             Step 1 · Choose your path
           </span>
@@ -132,7 +134,7 @@ export function AnalyzePathSection({
                   className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${path.accent} opacity-60 transition-opacity group-hover:opacity-90`}
                 />
                 <CardHeader className="relative">
-                  <span className="mb-4 flex size-12 items-center justify-center rounded-2xl border border-primary/15 bg-white/90 shadow-md shadow-primary/10">
+                  <span className="mb-4 flex size-12 items-center justify-center rounded-2xl border border-primary/15 bg-white/90 shadow-md shadow-primary/10 dark:bg-card/90">
                     <path.icon className="size-6 text-primary" />
                   </span>
                   <CardTitle className="font-display text-2xl font-bold">
@@ -192,7 +194,7 @@ export function AnalyzePathSection({
           transition={{ delay: 0.4, duration: 0.5 }}
           className="mt-16"
         >
-          <div className="rounded-3xl border border-primary/15 bg-white/60 px-6 py-10 shadow-lg shadow-primary/5 backdrop-blur-sm sm:px-10">
+          <div className="rounded-3xl border border-primary/15 bg-white/60 px-6 py-10 shadow-lg shadow-primary/5 backdrop-blur-sm sm:px-10 dark:bg-card/60">
             <h2 className="text-center font-display text-2xl font-bold tracking-tight sm:text-3xl">
               How it <em className="text-display-accent">works</em>
             </h2>

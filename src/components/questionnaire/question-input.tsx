@@ -22,7 +22,7 @@ function StructuredInput({ question, value, onChange }: QuestionInputProps) {
               className={cn(
                 "text-btn-label h-auto justify-start rounded-xl px-4 py-4 text-left text-base font-semibold",
                 value === option.value &&
-                  "ring-2 ring-primary/35 shadow-md shadow-primary/15"
+                  "ring-2 ring-primary/35 shadow-md shadow-primary/15 dark:ring-primary/60 dark:shadow-lg dark:shadow-primary/35"
               )}
               onClick={() => onChange(option.value)}
             >
@@ -45,7 +45,7 @@ function StructuredInput({ question, value, onChange }: QuestionInputProps) {
               className={cn(
                 "text-btn-label flex-1 rounded-xl py-6 text-base font-semibold",
                 value === option.value &&
-                  "ring-2 ring-primary/35 shadow-md shadow-primary/15"
+                  "ring-2 ring-primary/35 shadow-md shadow-primary/15 dark:ring-primary/60 dark:shadow-lg dark:shadow-primary/35"
               )}
               onClick={() => onChange(option.value)}
             >
@@ -94,7 +94,7 @@ function StructuredInput({ question, value, onChange }: QuestionInputProps) {
               className={cn(
                 "text-btn-label h-auto justify-start gap-3 rounded-xl px-4 py-4 text-left text-base font-semibold",
                 value === option.value &&
-                  "ring-2 ring-primary/35 shadow-md shadow-primary/15"
+                  "ring-2 ring-primary/35 shadow-md shadow-primary/15 dark:ring-primary/60 dark:shadow-lg dark:shadow-primary/35"
               )}
               onClick={() => onChange(option.value)}
             >

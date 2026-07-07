@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Heart } from "lucide-react";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 
 export function AppHeader() {
   return (
@@ -13,12 +14,15 @@ export function AppHeader() {
         </span>
         Signal
       </Link>
-      <Link
-        href="/dashboard"
-        className="text-label text-primary/80 hover:text-primary"
-      >
-        Dashboard
-      </Link>
+      <div className="flex items-center gap-4">
+        <ThemeToggle />
+        <Link
+          href="/dashboard"
+          className="text-label text-primary/80 hover:text-primary"
+        >
+          Dashboard
+        </Link>
+      </div>
     </header>
   );
 }

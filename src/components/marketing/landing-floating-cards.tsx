@@ -37,13 +37,13 @@ export function LandingFloatingCards() {
         delay={0.1}
         className="absolute left-[4%] top-[18%] w-52 xl:left-[8%] xl:w-56"
       >
-        <div className="relative rotate-[-3deg] rounded-xl bg-gradient-to-br from-primary/20 via-pink-100 to-rose-50 p-4 shadow-lg shadow-primary/15">
+        <div className="relative rotate-[-3deg] rounded-xl bg-gradient-to-br from-primary/20 via-pink-100 to-rose-50 p-4 shadow-lg shadow-primary/15 dark:via-primary/15 dark:to-primary/5">
           <span className="absolute -right-1 -top-1 size-3 rounded-full bg-primary shadow-sm" />
           <p className="text-xs font-semibold leading-relaxed text-foreground/75">
             Reflect on trust, communication, and the signals that matter most to you.
           </p>
         </div>
-        <div className="absolute -bottom-3 -right-3 flex size-10 items-center justify-center rounded-xl border border-primary/20 bg-white shadow-md">
+        <div className="absolute -bottom-3 -right-3 flex size-10 items-center justify-center rounded-xl border border-primary/20 bg-white shadow-md dark:bg-card">
           <Check className="size-5 text-primary" strokeWidth={2.5} />
         </div>
       </FloatCard>
@@ -112,7 +112,7 @@ export function LandingFloatingCards() {
             {[Heart, MessageCircle, Check].map((Icon, i) => (
               <span
                 key={i}
-                className="flex size-10 items-center justify-center rounded-xl border border-primary/15 bg-white/90 shadow-sm"
+                className="flex size-10 items-center justify-center rounded-xl border border-primary/15 bg-white/90 shadow-sm dark:bg-card/90"
               >
                 <Icon className="size-4 text-primary" />
               </span>
