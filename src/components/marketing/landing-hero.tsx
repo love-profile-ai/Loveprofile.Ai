@@ -13,6 +13,7 @@ import {
   Sparkles,
   Star,
 } from "lucide-react";
+import { SITE_NAME } from "@/lib/site";
 
 const stats = [
   { value: "5 min", label: "guided reflection" },
@@ -73,7 +74,7 @@ export function LandingHero() {
             </h1>
 
             <p className="text-lead mt-6 max-w-xl">
-              Signal turns your story into a private, thoughtful relationship
+              {SITE_NAME} turns your story into a private, thoughtful relationship
               analysis — helping you reflect with warmth, clarity, and emotional
               intelligence.
             </p>

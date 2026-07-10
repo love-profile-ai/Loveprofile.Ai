@@ -1,4 +1,5 @@
 import type { AnalysisReport } from "@/types/report";
+import type { AssessmentSummary } from "@/types/adaptive-engine";
 
 export const ANALYSIS_SYSTEM_PROMPT = `You are an expert relationship psychologist, behavioral analyst, and communication specialist.
 
@@ -133,6 +134,19 @@ Before returning, silently verify:
 
 If the answer to any is "No", rewrite before responding.`;
 
+/** Shorter system prompt for token-optimized summary-only report generation. */
+export const SUMMARY_REPORT_SYSTEM_PROMPT = `You are an expert relationship psychologist writing a personalized reflection report.
+
+Input: a compact assessment summary ONLY (scores, insights, observations). You do NOT receive individual questionnaire answers.
+
+Rules:
+- Never claim certainty about whether someone loves another person
+- Base conclusions only on the summary provided
+- Acknowledge uncertainty where caution_areas or low confidence indicate
+- Write naturally; avoid generic advice
+- Return ONLY valid JSON with these keys: summary, confidence (Low|Medium|High), green_flags, red_flags, what_we_noticed, gentle_next_steps, looking_ahead
+- No markdown, no extra keys`;
+
 export const CHAT_SYSTEM_PROMPT = `You are a compassionate relationship coach continuing a prior analysis session.
 
 Rules:
@@ -165,23 +179,87 @@ ${JSON.stringify(compact)}
 Generate the personalized report as JSON only.`;
 }
 
+export function buildSummaryReportUserPrompt(summary: AssessmentSummary): string {
+  const pathLabel =
+    summary.path === "do_i_love_someone"
+      ? "Do I Love Someone?"
+      : "Does Someone Love Me?";
+
+  const compact = {
+    path: pathLabel,
+    relationship_context: summary.relationship_context,
+    psychological_insights: summary.psychological_insights,
+    dimension_scores: summary.dimension_scores,
+    confidence_percent: summary.confidence_percent,
+    confidence_label: summary.confidence_label,
+    key_observations: summary.key_observations,
+    caution_areas: summary.caution_areas,
+    dominant_themes: summary.dominant_themes,
+    questions_answered: summary.questions_answered,
+  };
+
+  return `Assessment summary (use ONLY this data — do not invent answers):
+
+${JSON.stringify(compact)}
+
+Generate the personalized report as JSON only.`;
+}
+
 export function buildChatUserPrompt(
   path: string,
   answers: { questionText: string; value: string | number | boolean }[],
   analysis: AnalysisReport,
   history: { role: string; content: string }[],
-  message: string
+  message: string,
+  assessmentSummary?: AssessmentSummary | null
 ): string {
+  if (assessmentSummary) {
+    return buildChatUserPromptFromSummary(
+      path,
+      assessmentSummary,
+      analysis,
+      history,
+      message
+    );
+  }
+
   return `Original path: ${path}
 
-Original answers:
-${answers.map((a) => `- ${a.questionText}: ${String(a.value)}`).join("\n")}
-
-Analysis:
-${JSON.stringify(analysis, null, 2)}
+Report analysis (compact):
+${JSON.stringify(analysis)}
 
 Recent conversation:
-${history.map((m) => `${m.role}: ${m.content}`).join("\n")}
+${history.slice(-6).map((m) => `${m.role}: ${m.content}`).join("\n")}
+
+User follow-up: ${message}`;
+}
+
+/** Token-optimized chat — uses assessment summary, not full Q&A history. */
+export function buildChatUserPromptFromSummary(
+  path: string,
+  summary: AssessmentSummary,
+  analysis: AnalysisReport,
+  history: { role: string; content: string }[],
+  message: string
+): string {
+  const compact = {
+    path,
+    relationship_context: summary.relationship_context,
+    psychological_insights: summary.psychological_insights.slice(0, 6),
+    dimension_scores: summary.dimension_scores,
+    confidence_percent: summary.confidence_percent,
+    key_observations: summary.key_observations.slice(0, 4),
+    caution_areas: summary.caution_areas.slice(0, 3),
+    dominant_themes: summary.dominant_themes,
+    report_summary: analysis.summary,
+  };
+
+  return `Assessment summary (use this — not individual questionnaire answers):
+
+${JSON.stringify(compact)}
+
+Recent conversation (last 6 turns only):
+${history.slice(-6).map((m) => `${m.role}: ${m.content}`).join("\n")}
 
 User follow-up: ${message}`;
 }

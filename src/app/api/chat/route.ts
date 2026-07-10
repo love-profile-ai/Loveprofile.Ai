@@ -39,7 +39,7 @@ export async function POST(request: Request) {
 
     const { data: report, error: reportError } = await supabase
       .from("reports")
-      .select("*")
+      .select("*, assessment_summary")
       .eq("id", parsed.data.reportId)
       .eq("user_id", user.id)
       .single();
@@ -67,7 +67,9 @@ export async function POST(request: Request) {
       report.answers as Answer[],
       report.analysis as AnalysisReport,
       (history ?? []) as { role: "user" | "assistant"; content: string }[],
-      message
+      message,
+      (report.assessment_summary as import("@/types/adaptive-engine").AssessmentSummary | null) ??
+        null
     );
 
     const encoder = new TextEncoder();

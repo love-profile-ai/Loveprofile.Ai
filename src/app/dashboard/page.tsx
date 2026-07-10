@@ -335,8 +335,8 @@ export default function DashboardPage() {
                       {new Date(report.created_at).toLocaleDateString()} ·{" "}
                       {report.confidence} confidence ·{" "}
                       {report.path === "i_like_someone"
-                        ? "Do I love someone?"
-                        : "Does someone love me?"}
+                        ? "Do I Love Someone?"
+                        : "Does Someone Love Me?"}
                     </p>
                   </div>
                   <div className="flex gap-2">

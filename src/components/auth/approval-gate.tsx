@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Clock, Mail, ShieldCheck, Sparkles } from "lucide-react";
+import { SITE_NAME, SUPPORT_EMAIL } from "@/lib/site";
 
 interface AccessState {
   authenticated: boolean;
@@ -33,7 +34,7 @@ const PUBLIC_PREFIXES = [
 function BlockingPage({ access }: { access: AccessState }) {
   const maintenance = access.maintenance?.enabled;
   const title = maintenance
-    ? "Signal is under gentle maintenance"
+    ? `${SITE_NAME} is under gentle maintenance`
     : "Your account is currently under review";
   const message = maintenance
     ? access.maintenance?.reason ??
@@ -79,7 +80,7 @@ function BlockingPage({ access }: { access: AccessState }) {
           >
             Check again
           </Button>
-          <Link href={`mailto:${access.maintenance?.contactEmail ?? "support@signal.app"}`}>
+          <Link href={`mailto:${access.maintenance?.contactEmail ?? SUPPORT_EMAIL}`}>
             <Button variant="outline">
               <Mail className="mr-1 size-4" />
               Contact support
@@ -91,6 +92,11 @@ function BlockingPage({ access }: { access: AccessState }) {
           <ShieldCheck className="size-4 text-primary" />
           Admin access remains available
         </p>
+        <Link href="/admin" className="mt-3 inline-block">
+          <Button variant="outline" size="sm">
+            Go to Admin
+          </Button>
+        </Link>
       </div>
     </div>
   );

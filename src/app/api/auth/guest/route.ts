@@ -49,7 +49,7 @@ export async function POST(request: Request) {
 
     const admin = createAdminClient();
     const guestId = crypto.randomUUID();
-    const email = `guest+${guestId}@guest.signal.app`;
+    const email = `guest+${guestId}@guest.loveprofile.ai`;
 
     const { error: createError } = await admin.auth.admin.createUser({
       email,

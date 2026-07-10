@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 import { Providers } from "@/components/providers";
+import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -22,15 +23,15 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: {
-    default: "Signal — AI Relationship Analyst",
-    template: "%s | Signal",
+    default: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    template: `%s | ${SITE_NAME}`,
   },
   description:
-    "Understand your relationship through AI-powered psychological analysis. No scores — just thoughtful reasoning.",
+    "Understand your relationship through AI-powered reflection. No scores — just thoughtful, evidence-based insights.",
   openGraph: {
-    title: "Signal — AI Relationship Analyst",
+    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
     description:
-      "Discover what your relationship signals really mean with AI-powered analysis.",
+      "Discover what your relationship signals really mean with personalized AI analysis.",
     type: "website",
   },
 };

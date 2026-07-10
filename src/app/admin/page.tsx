@@ -1,23 +1,38 @@
-import { getCurrentAdmin } from "@/lib/admin/auth";
+import { getAdminAccessStatus } from "@/lib/admin/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { AdminClient } from "@/app/admin/admin-client";
+import { AdminBootstrapPanel } from "@/app/admin/admin-bootstrap-panel";
+
+async function canBootstrapFirstAdmin() {
+  const admin = createAdminClient();
+  const { count, error } = await admin
+    .from("profiles")
+    .select("id", { count: "exact", head: true })
+    .eq("role", "admin")
+    .eq("approval_status", "approved");
+
+  if (error) return false;
+  return (count ?? 0) === 0;
+}
 
 export default async function AdminPage() {
-  const admin = await getCurrentAdmin();
+  const [access, canBootstrap] = await Promise.all([
+    getAdminAccessStatus(),
+    canBootstrapFirstAdmin(),
+  ]);
 
-  if (!admin) {
+  if (!access.allowed) {
     return (
-      <div className="landing-canvas flex min-h-screen items-center justify-center px-4">
-        <div className="page-glow pointer-events-none absolute inset-0 -z-10" />
-        <div className="premium-card max-w-lg p-8 text-center">
-          <p className="text-label">Admin Control Center</p>
-          <h1 className="text-heading-page mt-3">403 Unauthorized</h1>
-          <p className="text-lead mt-4">
-            This area is restricted to approved administrators only.
-          </p>
-        </div>
-      </div>
+      <AdminBootstrapPanel
+        reason={access.reason}
+        email={access.email}
+        role={access.role}
+        approvalStatus={access.approval_status}
+        canBootstrap={canBootstrap}
+      />
     );
   }
 
-  return <AdminClient adminEmail={admin.email ?? "Admin"} />;
+  const adminEmail = access.email ?? "Admin";
+  return <AdminClient adminEmail={adminEmail} />;
 }

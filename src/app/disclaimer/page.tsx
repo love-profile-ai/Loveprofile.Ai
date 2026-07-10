@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { DisclaimerCard } from "@/components/marketing/disclaimer-card";
 import { LandingNavbar } from "@/components/marketing/landing-navbar";
 import { hasAcceptedDisclaimer } from "@/lib/disclaimer";
+import { SITE_NAME } from "@/lib/site";
 
 export default function DisclaimerPage() {
   const router = useRouter();
@@ -30,7 +31,7 @@ export default function DisclaimerPage() {
               A calm boundary before your <em className="text-display-accent">reflection.</em>
             </h1>
             <p className="text-lead mt-5">
-              Signal is designed for thoughtful self-reflection. Read the short
+              {SITE_NAME} is designed for thoughtful self-reflection. Read the short
               note, acknowledge it, and then begin your private assessment.
             </p>
             <div className="mt-8 grid gap-3 text-sm font-semibold text-foreground/62 sm:grid-cols-3 lg:grid-cols-1">

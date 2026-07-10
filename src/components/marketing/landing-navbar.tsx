@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
+import { SITE_NAME } from "@/lib/site";
 
 const links = [
   { href: "#how-it-works", label: "How it works" },
   { href: "#insights", label: "Insights" },
   { href: "/dashboard", label: "Dashboard" },
+  { href: "/admin", label: "Admin" },
 ];
 
 export function LandingNavbar() {
@@ -23,7 +25,7 @@ export function LandingNavbar() {
             <span className="size-1.5 rounded-full bg-primary/45" />
           </span>
         </span>
-        Signal
+        {SITE_NAME}
       </Link>
 
       <nav className="hidden items-center gap-7 md:flex">

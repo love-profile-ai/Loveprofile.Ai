@@ -7,8 +7,10 @@ import {
   Activity,
   BarChart3,
   Bell,
+  Brain,
   CheckCircle2,
   CircleSlash,
+  ClipboardList,
   FileText,
   Globe2,
   LayoutDashboard,
@@ -23,11 +25,14 @@ import {
   Users,
   XCircle,
 } from "lucide-react";
+import { SITE_NAME } from "@/lib/site";
 
 type Tab =
   | "dashboard"
   | "users"
   | "questions"
+  | "adaptive"
+  | "reports"
   | "settings"
   | "content"
   | "music"
@@ -51,10 +56,48 @@ interface UserRow {
   reports_generated: number;
 }
 
+interface AdaptiveQuestionRow {
+  id: string;
+  path: string;
+  category: string;
+  question_text: string;
+  type: string;
+  psychological_dimension: string;
+  priority: number;
+  is_active: boolean;
+  is_starter: boolean;
+  is_clarification: boolean;
+  parent_question_id: string | null;
+}
+
+interface ReportRow {
+  id: string;
+  user_id: string;
+  user_email: string | null;
+  user_name: string | null;
+  title: string;
+  path: string;
+  confidence: string;
+  assessment_session_id: string | null;
+  created_at: string;
+}
+
+interface SessionRow {
+  id: string;
+  user_id: string;
+  user_email: string | null;
+  path: string;
+  status: string;
+  question_count: number;
+  created_at: string;
+}
+
 const tabs: { id: Tab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "users", label: "Users", icon: Users },
   { id: "questions", label: "Questionnaire", icon: ListChecks },
+  { id: "adaptive", label: "Adaptive", icon: Brain },
+  { id: "reports", label: "Reports", icon: ClipboardList },
   { id: "settings", label: "Settings", icon: Settings },
   { id: "content", label: "Content", icon: FileText },
   { id: "music", label: "Music", icon: Music },
@@ -108,10 +151,16 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
   const [loading, setLoading] = useState(true);
   const [overview, setOverview] = useState<Record<string, string | number>>({});
   const [users, setUsers] = useState<UserRow[]>([]);
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("");
   const [settings, setSettings] = useState<Record<string, any>>({});
   const [questions, setQuestions] = useState<any[]>([]);
+  const [adaptiveQuestions, setAdaptiveQuestions] = useState<AdaptiveQuestionRow[]>([]);
+  const [adaptivePathFilter, setAdaptivePathFilter] = useState("");
+  const [reportRows, setReportRows] = useState<ReportRow[]>([]);
+  const [sessionRows, setSessionRows] = useState<SessionRow[]>([]);
+  const [selectedReport, setSelectedReport] = useState<ReportRow | null>(null);
   const [music, setMusic] = useState<{ tracks: any[]; settings: any }>({
     tracks: [],
     settings: {},
@@ -123,22 +172,26 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
 
   async function loadAll() {
     setLoading(true);
-    const [overviewRes, usersRes, settingsRes, questionsRes, musicRes, auditRes] =
+    const [overviewRes, usersRes, settingsRes, questionsRes, adaptiveRes, reportsRes, musicRes, auditRes] =
       await Promise.all([
         fetch("/api/admin/overview"),
         fetch("/api/admin/users"),
         fetch("/api/admin/settings"),
         fetch("/api/admin/questions"),
+        fetch("/api/admin/adaptive-questions"),
+        fetch("/api/admin/reports"),
         fetch("/api/admin/music"),
         fetch("/api/admin/audit"),
       ]);
 
-    const [overviewData, usersData, settingsData, questionsData, musicData, auditData] =
+    const [overviewData, usersData, settingsData, questionsData, adaptiveData, reportsData, musicData, auditData] =
       await Promise.all([
         overviewRes.json(),
         usersRes.json(),
         settingsRes.json(),
         questionsRes.json(),
+        adaptiveRes.json(),
+        reportsRes.json(),
         musicRes.json(),
         auditRes.json(),
       ]);
@@ -147,6 +200,9 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
     setUsers(usersData.users ?? []);
     setSettings(settingsData.settings ?? {});
     setQuestions(questionsData.questions ?? []);
+    setAdaptiveQuestions(adaptiveData.questions ?? []);
+    setReportRows(reportsData.reports ?? []);
+    setSessionRows(reportsData.sessions ?? []);
     setMusic({ tracks: musicData.tracks ?? [], settings: musicData.settings ?? {} });
     setAudit({
       logs: auditData.logs ?? [],
@@ -159,6 +215,11 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
     loadAll();
   }, []);
 
+  const pendingUsers = useMemo(
+    () => users.filter((u) => u.approval_status === "pending"),
+    [users]
+  );
+
   const visibleUsers = useMemo(() => {
     return users.filter((user) => {
       const text = `${user.email ?? ""} ${user.full_name ?? ""} ${user.display_name ?? ""} ${user.role}`.toLowerCase();
@@ -167,6 +228,43 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
       return matchesQuery && matchesFilter;
     });
   }, [users, query, filter]);
+
+  const pendingCount = useMemo(
+    () => Number(overview.pendingApprovals ?? users.filter((u) => u.approval_status === "pending").length),
+    [overview.pendingApprovals, users]
+  );
+
+  const visibleAdaptiveQuestions = useMemo(() => {
+    if (!adaptivePathFilter) return adaptiveQuestions;
+    return adaptiveQuestions.filter((q) => q.path === adaptivePathFilter);
+  }, [adaptiveQuestions, adaptivePathFilter]);
+
+  const allVisibleSelected =
+    visibleUsers.length > 0 && visibleUsers.every((u) => selectedUserIds.includes(u.id));
+
+  function toggleUserSelection(userId: string) {
+    setSelectedUserIds((prev) =>
+      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+    );
+  }
+
+  function toggleSelectAllVisible() {
+    if (allVisibleSelected) {
+      const visibleIds = new Set(visibleUsers.map((u) => u.id));
+      setSelectedUserIds((prev) => prev.filter((id) => !visibleIds.has(id)));
+      return;
+    }
+    setSelectedUserIds((prev) => [
+      ...prev,
+      ...visibleUsers.map((u) => u.id).filter((id) => !prev.includes(id)),
+    ]);
+  }
+
+  async function bulkUpdateUsers(action: "approve" | "reject") {
+    if (!selectedUserIds.length) return;
+    await updateUsers(selectedUserIds, action);
+    setSelectedUserIds([]);
+  }
 
   async function updateUsers(userIds: string[], action: string) {
     await fetch("/api/admin/users", {
@@ -218,6 +316,23 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
     await loadAll();
   }
 
+  async function toggleAdaptiveQuestion(id: string, is_active: boolean) {
+    await fetch("/api/admin/adaptive-questions", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, is_active }),
+    });
+    await loadAll();
+  }
+
+  async function deleteReportOrSession(type: "report" | "session", id: string) {
+    const label = type === "report" ? "report" : "assessment session";
+    if (!confirm(`Delete this ${label}? This cannot be undone.`)) return;
+    await fetch(`/api/admin/reports?type=${type}&id=${id}`, { method: "DELETE" });
+    if (selectedReport?.id === id) setSelectedReport(null);
+    await loadAll();
+  }
+
   return (
     <div className="landing-canvas min-h-screen">
       <div className="dot-grid pointer-events-none absolute inset-0 -z-10" />
@@ -230,7 +345,7 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
               <LockKeyhole className="size-5" />
             </span>
             <div>
-              <p className="font-display text-xl font-semibold">Signal Admin</p>
+              <p className="font-display text-xl font-semibold">{SITE_NAME} Admin</p>
               <p className="text-xs font-semibold text-foreground/45">{adminEmail}</p>
             </div>
           </div>
@@ -247,6 +362,11 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
               >
                 <item.icon className="size-4" />
                 {item.label}
+                {item.id === "users" && pendingCount > 0 && (
+                  <span className="ml-auto rounded-full bg-gold px-2 py-0.5 text-[10px] font-bold text-foreground">
+                    {pendingCount}
+                  </span>
+                )}
               </button>
             ))}
           </nav>
@@ -256,7 +376,7 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
           <header className="premium-card mb-6 flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-label">Enterprise Control Center</p>
-              <h1 className="text-heading-page mt-2">Operate Signal with clarity.</h1>
+              <h1 className="text-heading-page mt-2">Operate {SITE_NAME} with clarity.</h1>
             </div>
             <div className="flex items-center gap-3">
               <div className="relative">
@@ -321,6 +441,48 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
                       </div>
                     </div>
                   </div>
+
+                  {pendingUsers.length > 0 && (
+                    <div className="premium-card p-6">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p className="text-label">Pending approvals</p>
+                          <h2 className="font-display text-2xl font-semibold">
+                            {pendingUsers.length} user{pendingUsers.length === 1 ? "" : "s"} waiting
+                          </h2>
+                        </div>
+                        <Button
+                          onClick={() => {
+                            setTab("users");
+                            setFilter("pending");
+                          }}
+                        >
+                          Open Users tab
+                        </Button>
+                      </div>
+                      <div className="mt-5 space-y-3">
+                        {pendingUsers.slice(0, 5).map((user) => (
+                          <div
+                            key={user.id}
+                            className="flex flex-col gap-3 rounded-2xl border border-primary/10 bg-white/35 p-4 sm:flex-row sm:items-center sm:justify-between dark:bg-white/[0.04]"
+                          >
+                            <div>
+                              <p className="font-bold">{user.full_name ?? user.display_name ?? "Unnamed user"}</p>
+                              <p className="text-xs font-semibold text-foreground/45">{user.email}</p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={() => updateUsers([user.id], "approve")}>
+                                <CheckCircle2 className="size-3" /> Approve
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => updateUsers([user.id], "reject")}>
+                                <XCircle className="size-3" /> Reject
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </section>
               )}
 
@@ -331,26 +493,49 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
                       <p className="text-label">User Management</p>
                       <h2 className="font-display text-3xl font-semibold">Registered users</h2>
                     </div>
-                    <select
-                      value={filter}
-                      onChange={(e) => setFilter(e.target.value)}
-                      className="premium-input rounded-full"
-                    >
-                      <option value="">All users</option>
-                      <option value="approved">Approved</option>
-                      <option value="pending">Pending</option>
-                      <option value="rejected">Rejected</option>
-                      <option value="blocked">Blocked</option>
-                      <option value="suspended">Suspended</option>
-                      <option value="admin">Admins</option>
-                      <option value="google">Google users</option>
-                      <option value="email">Email users</option>
-                    </select>
+                    <div className="flex flex-wrap items-center gap-3">
+                      {selectedUserIds.length > 0 && (
+                        <>
+                          <span className="text-xs font-bold uppercase tracking-[0.16em] text-foreground/50">
+                            {selectedUserIds.length} selected
+                          </span>
+                          <Button size="sm" onClick={() => bulkUpdateUsers("approve")}>
+                            <CheckCircle2 className="size-3" /> Approve selected
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => bulkUpdateUsers("reject")}>
+                            <XCircle className="size-3" /> Reject selected
+                          </Button>
+                        </>
+                      )}
+                      <select
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
+                        className="premium-input rounded-full"
+                      >
+                        <option value="">All users</option>
+                        <option value="approved">Approved</option>
+                        <option value="pending">Pending</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="blocked">Blocked</option>
+                        <option value="suspended">Suspended</option>
+                        <option value="admin">Admins</option>
+                        <option value="google">Google users</option>
+                        <option value="email">Email users</option>
+                      </select>
+                    </div>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-[1100px] text-left text-sm">
                       <thead className="bg-primary/5 text-[11px] uppercase tracking-[0.18em] text-foreground/45">
                         <tr>
+                          <th className="px-5 py-4">
+                            <input
+                              type="checkbox"
+                              checked={allVisibleSelected}
+                              onChange={toggleSelectAllVisible}
+                              aria-label="Select all visible users"
+                            />
+                          </th>
                           <th className="px-5 py-4">User</th>
                           <th className="px-5 py-4">Provider</th>
                           <th className="px-5 py-4">Role</th>
@@ -364,6 +549,14 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
                       <tbody>
                         {visibleUsers.map((user) => (
                           <tr key={user.id} className="border-t border-primary/8">
+                            <td className="px-5 py-4">
+                              <input
+                                type="checkbox"
+                                checked={selectedUserIds.includes(user.id)}
+                                onChange={() => toggleUserSelection(user.id)}
+                                aria-label={`Select ${user.email ?? user.id}`}
+                              />
+                            </td>
                             <td className="px-5 py-4">
                               <div className="flex items-center gap-3">
                                 <div className="grid size-10 place-items-center overflow-hidden rounded-full bg-primary/10 font-bold text-primary">
@@ -476,6 +669,182 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
                         </div>
                       </div>
                     ))}
+                  </div>
+                </section>
+              )}
+
+              {tab === "adaptive" && (
+                <section className="space-y-5">
+                  <div className="premium-card flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-label">Adaptive Engine</p>
+                      <h2 className="font-display text-3xl font-semibold">Dynamic questions</h2>
+                      <p className="mt-2 text-sm font-medium text-foreground/55">
+                        Manage the adaptive `questions` table used by the live assessment engine.
+                      </p>
+                    </div>
+                    <select
+                      value={adaptivePathFilter}
+                      onChange={(e) => setAdaptivePathFilter(e.target.value)}
+                      className="premium-input rounded-full"
+                    >
+                      <option value="">All paths</option>
+                      <option value="do_i_love_someone">Do I love someone</option>
+                      <option value="does_someone_love_me">Does someone love me</option>
+                    </select>
+                  </div>
+                  <div className="space-y-3">
+                    {visibleAdaptiveQuestions.map((question) => (
+                      <div key={question.id} className="premium-card p-5">
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-label">
+                              {question.path} · {question.psychological_dimension} · priority {question.priority}
+                              {question.is_starter ? " · starter" : ""}
+                              {question.is_clarification ? " · clarification" : ""}
+                            </p>
+                            <h3 className="mt-2 font-display text-xl font-semibold">{question.question_text}</h3>
+                            <p className="mt-2 text-sm font-medium text-foreground/55">
+                              {question.type} · {question.category}
+                              {question.parent_question_id ? ` · parent: ${question.parent_question_id}` : ""}
+                            </p>
+                          </div>
+                          <div className="flex shrink-0 gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => toggleAdaptiveQuestion(question.id, !question.is_active)}
+                            >
+                              {question.is_active ? "Disable" : "Enable"}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {visibleAdaptiveQuestions.length === 0 && (
+                      <p className="premium-card p-6 text-sm font-semibold text-foreground/58">
+                        No adaptive questions found. Run migration 003 to seed the question bank.
+                      </p>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {tab === "reports" && (
+                <section className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+                  <div className="space-y-5">
+                    <div className="premium-card overflow-hidden">
+                      <div className="border-b border-primary/10 p-5">
+                        <p className="text-label">Generated Reports</p>
+                        <h2 className="font-display text-3xl font-semibold">{reportRows.length} reports</h2>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full min-w-[800px] text-left text-sm">
+                          <thead className="bg-primary/5 text-[11px] uppercase tracking-[0.18em] text-foreground/45">
+                            <tr>
+                              <th className="px-5 py-4">User</th>
+                              <th className="px-5 py-4">Path</th>
+                              <th className="px-5 py-4">Confidence</th>
+                              <th className="px-5 py-4">Created</th>
+                              <th className="px-5 py-4">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {reportRows.map((report) => (
+                              <tr key={report.id} className="border-t border-primary/8">
+                                <td className="px-5 py-4">
+                                  <p className="font-bold">{report.user_name ?? "Unnamed"}</p>
+                                  <p className="text-xs text-foreground/45">{report.user_email}</p>
+                                </td>
+                                <td className="px-5 py-4 font-semibold">{report.path}</td>
+                                <td className="px-5 py-4">{report.confidence}</td>
+                                <td className="px-5 py-4 text-foreground/60">
+                                  {new Date(report.created_at).toLocaleString()}
+                                </td>
+                                <td className="px-5 py-4">
+                                  <div className="flex gap-2">
+                                    <Button size="xs" variant="outline" onClick={() => setSelectedReport(report)}>
+                                      View
+                                    </Button>
+                                    <Button
+                                      size="xs"
+                                      variant="ghost"
+                                      onClick={() => deleteReportOrSession("report", report.id)}
+                                    >
+                                      Delete
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <div className="premium-card overflow-hidden">
+                      <div className="border-b border-primary/10 p-5">
+                        <p className="text-label">Assessment Sessions</p>
+                        <h2 className="font-display text-3xl font-semibold">{sessionRows.length} sessions</h2>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full min-w-[700px] text-left text-sm">
+                          <thead className="bg-primary/5 text-[11px] uppercase tracking-[0.18em] text-foreground/45">
+                            <tr>
+                              <th className="px-5 py-4">User</th>
+                              <th className="px-5 py-4">Path</th>
+                              <th className="px-5 py-4">Status</th>
+                              <th className="px-5 py-4">Questions</th>
+                              <th className="px-5 py-4">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {sessionRows.map((session) => (
+                              <tr key={session.id} className="border-t border-primary/8">
+                                <td className="px-5 py-4">{session.user_email ?? session.user_id}</td>
+                                <td className="px-5 py-4 font-semibold">{session.path}</td>
+                                <td className="px-5 py-4"><StatusBadge status={session.status} /></td>
+                                <td className="px-5 py-4">{session.question_count}</td>
+                                <td className="px-5 py-4">
+                                  <Button
+                                    size="xs"
+                                    variant="ghost"
+                                    onClick={() => deleteReportOrSession("session", session.id)}
+                                  >
+                                    Delete
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="premium-card p-6">
+                    <p className="text-label">Report Detail</p>
+                    {selectedReport ? (
+                      <div className="mt-4 space-y-3 text-sm">
+                        <h3 className="font-display text-2xl font-semibold">{selectedReport.title}</h3>
+                        <p><span className="font-bold">User:</span> {selectedReport.user_email}</p>
+                        <p><span className="font-bold">Path:</span> {selectedReport.path}</p>
+                        <p><span className="font-bold">Confidence:</span> {selectedReport.confidence}</p>
+                        <p><span className="font-bold">Session:</span> {selectedReport.assessment_session_id ?? "—"}</p>
+                        <p><span className="font-bold">Created:</span> {new Date(selectedReport.created_at).toLocaleString()}</p>
+                        <Button
+                          className="mt-4"
+                          variant="outline"
+                          onClick={() => deleteReportOrSession("report", selectedReport.id)}
+                        >
+                          Delete report
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="mt-4 text-sm font-medium text-foreground/55">
+                        Select a report to view details.
+                      </p>
+                    )}
                   </div>
                 </section>
               )}

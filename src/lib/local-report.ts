@@ -1,5 +1,6 @@
 import type { AnalysisPath, Answer } from "@/types/questionnaire";
 import type { AnalysisReport } from "@/types/report";
+import type { AssessmentSummary } from "@/types/adaptive-engine";
 
 const PREFIX = "signal-report:";
 
@@ -9,6 +10,7 @@ export interface LocalReport {
   path: AnalysisPath;
   answers: Answer[];
   analysis: AnalysisReport;
+  assessment_summary?: AssessmentSummary;
   created_at: string;
 }
 

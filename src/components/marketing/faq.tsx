@@ -4,6 +4,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { SITE_NAME } from "@/lib/site";
 
 const faqs = [
   {
@@ -20,7 +21,7 @@ const faqs = [
   },
   {
     q: "Is this a replacement for therapy?",
-    a: "No. Signal is a self-reflection tool, not professional therapy or counseling. If you're in distress, please reach out to a qualified mental health professional.",
+    a: `No. ${SITE_NAME} is a self-reflection tool, not professional therapy or counseling. If you're in distress, please reach out to a qualified mental health professional.`,
   },
 ];
 

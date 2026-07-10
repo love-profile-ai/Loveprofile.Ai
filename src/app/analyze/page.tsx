@@ -26,14 +26,22 @@ export default function AnalyzePage() {
     }
 
     try {
-      const res = await fetch("/api/reports", {
+      const res = await fetch("/api/session/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path }),
       });
       if (res.ok) {
-        const { sessionId } = await res.json();
-        router.push(`/analyze/${sessionId}?path=${path}`);
+        const data = await res.json();
+        sessionStorage.setItem(
+          `adaptive-bootstrap:${data.sessionId}`,
+          JSON.stringify({
+            question: data.question,
+            profile: data.profile,
+            assessment_summary: data.assessment_summary,
+          })
+        );
+        router.push(`/analyze/${data.sessionId}?path=${path}`);
         setLoading(null);
         return;
       }

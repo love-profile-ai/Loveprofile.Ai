@@ -1,13 +1,16 @@
 import {
   ANALYSIS_SYSTEM_PROMPT,
   CHAT_SYSTEM_PROMPT,
+  SUMMARY_REPORT_SYSTEM_PROMPT,
   buildAnalysisUserPrompt,
   buildChatUserPrompt,
+  buildSummaryReportUserPrompt,
 } from "./prompts";
 import { createOpenRouterClient, OPENROUTER_MODEL } from "./openrouter";
 import { analysisReportSchema } from "./schemas";
 import type { AnalysisReport } from "@/types/report";
 import type { Answer, AnalysisPath } from "@/types/questionnaire";
+import type { AssessmentSummary } from "@/types/adaptive-engine";
 
 function parseJsonFromModel(text: string): unknown {
   const trimmed = text.trim();
@@ -41,12 +44,39 @@ export async function generateAnalysis(
   return analysisReportSchema.parse(parsed);
 }
 
+/** Token-optimized: one AI call using compact assessment summary only. */
+export async function generateReportFromSummary(
+  summary: AssessmentSummary
+): Promise<AnalysisReport> {
+  const client = createOpenRouterClient();
+  const userPrompt = buildSummaryReportUserPrompt(summary);
+
+  const completion = await client.chat.completions.create({
+    model: OPENROUTER_MODEL,
+    messages: [
+      { role: "system", content: SUMMARY_REPORT_SYSTEM_PROMPT },
+      { role: "user", content: userPrompt },
+    ],
+    temperature: 0.4,
+    max_tokens: 1200,
+  });
+
+  const raw = completion.choices[0]?.message?.content?.trim();
+  if (!raw) {
+    throw new Error("Empty response from OpenRouter");
+  }
+
+  const parsed = parseJsonFromModel(raw);
+  return analysisReportSchema.parse(parsed);
+}
+
 export async function generateChatResponse(
   path: string,
   answers: Answer[],
   analysis: AnalysisReport,
   history: { role: "user" | "assistant"; content: string }[],
-  message: string
+  message: string,
+  assessmentSummary?: import("@/types/adaptive-engine").AssessmentSummary | null
 ): Promise<string> {
   const client = createOpenRouterClient();
   const userPrompt = buildChatUserPrompt(
@@ -54,7 +84,8 @@ export async function generateChatResponse(
     answers,
     analysis,
     history,
-    message
+    message,
+    assessmentSummary
   );
 
   const completion = await client.chat.completions.create({
@@ -77,7 +108,8 @@ export async function* streamChatResponse(
   answers: Answer[],
   analysis: AnalysisReport,
   history: { role: "user" | "assistant"; content: string }[],
-  message: string
+  message: string,
+  assessmentSummary?: import("@/types/adaptive-engine").AssessmentSummary | null
 ): AsyncGenerator<string> {
   const client = createOpenRouterClient();
   const userPrompt = buildChatUserPrompt(
@@ -85,7 +117,8 @@ export async function* streamChatResponse(
     answers,
     analysis,
     history,
-    message
+    message,
+    assessmentSummary
   );
 
   const stream = await client.chat.completions.create({

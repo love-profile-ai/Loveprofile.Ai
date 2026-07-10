@@ -11,7 +11,7 @@ const buttonVariants = cva(
         default:
           "border-primary/25 bg-gradient-to-r from-primary via-coral to-primary text-primary-foreground shadow-xl shadow-primary/20 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-primary/30 dark:border-white/10 dark:from-primary dark:via-coral dark:to-primary dark:text-white dark:shadow-primary/30",
         outline:
-          "border-primary/20 bg-white/60 text-foreground shadow-sm shadow-primary/5 backdrop-blur-xl hover:-translate-y-0.5 hover:border-primary/35 hover:bg-white/85 hover:text-primary hover:shadow-lg hover:shadow-primary/10 aria-expanded:bg-primary/10 dark:border-white/10 dark:bg-white/[0.06] dark:text-foreground dark:shadow-black/20 dark:hover:border-primary/35 dark:hover:bg-primary/12 dark:hover:text-primary",
+          "border-primary/20 bg-white/60 text-foreground shadow-sm shadow-primary/5 backdrop-blur-xl hover:-translate-y-0.5 hover:border-primary/35 hover:bg-white/85 hover:text-primary hover:shadow-lg hover:shadow-primary/10 aria-expanded:bg-primary/10 dark:border-primary/30 dark:bg-white/[0.08] dark:text-foreground dark:shadow-primary/15 dark:ring-1 dark:ring-primary/15 dark:hover:border-primary/45 dark:hover:bg-primary/14 dark:hover:text-primary dark:hover:shadow-primary/25",
         secondary:
           "border-border/60 bg-secondary/80 text-secondary-foreground shadow-sm hover:bg-secondary aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:

@@ -28,7 +28,7 @@ const paths = [
   {
     id: "i_like_someone" as const,
     icon: Heart,
-    title: "Do I love someone?",
+    title: "Do I Love Someone?",
     description:
       "Explore your own feelings — love, crush, admiration, or friendship",
     bullets: [
@@ -42,7 +42,7 @@ const paths = [
   {
     id: "someone_likes_me" as const,
     icon: Eye,
-    title: "Does someone love me?",
+    title: "Does Someone Love Me?",
     description: "Decode their signals, behavior, and emotional connection",
     bullets: [
       "Read mixed signals with clarity",

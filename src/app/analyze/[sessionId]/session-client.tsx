@@ -4,12 +4,14 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import { DisclaimerGuard } from "@/components/marketing/disclaimer-guard";
-import { QuestionEngine } from "@/components/questionnaire/question-engine";
+import { AdaptiveQuestionEngine } from "@/components/questionnaire/adaptive-question-engine";
 import { AppHeader } from "@/components/shared/app-header";
 import { PageShell } from "@/components/shared/page-shell";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getLocalSession } from "@/lib/local-session";
-import type { AnalysisPath, Answer } from "@/types/questionnaire";
+import type { AnalysisPath } from "@/types/questionnaire";
+import type { Question, UserProfile, AssessmentSummary } from "@/types/adaptive-engine";
+
+const BOOTSTRAP_PREFIX = "adaptive-bootstrap:";
 
 export default function SessionPageClient({
   params,
@@ -21,42 +23,29 @@ export default function SessionPageClient({
   const path = searchParams.get("path") as AnalysisPath;
   const isLocal = searchParams.get("local") === "1";
 
-  const [session, setSession] = useState<{
-    answers: Answer[];
-    current_question_id: string | null;
-  } | null>(null);
+  const [ready, setReady] = useState(false);
+  const [bootstrap, setBootstrap] = useState<{
+    question?: Question;
+    profile?: UserProfile;
+    assessment_summary?: AssessmentSummary;
+  }>({});
 
   useEffect(() => {
     if (isLocal) {
-      const local = getLocalSession(sessionId);
-      if (local) {
-        setSession({
-          answers: local.answers,
-          current_question_id: local.current_question_id,
-        });
-      } else {
-        setSession({ answers: [], current_question_id: null });
-      }
+      setReady(true);
       return;
     }
 
-    fetch(`/api/sessions/${sessionId}`)
-      .then((r) => {
-        if (!r.ok) throw new Error("Not found");
-        return r.json();
-      })
-      .then(setSession)
-      .catch(() => {
-        const local = getLocalSession(sessionId);
-        setSession(
-          local
-            ? {
-                answers: local.answers,
-                current_question_id: local.current_question_id,
-              }
-            : { answers: [], current_question_id: null }
-        );
-      });
+    const raw = sessionStorage.getItem(`${BOOTSTRAP_PREFIX}${sessionId}`);
+    if (raw) {
+      try {
+        setBootstrap(JSON.parse(raw));
+      } catch {
+        setBootstrap({});
+      }
+      sessionStorage.removeItem(`${BOOTSTRAP_PREFIX}${sessionId}`);
+    }
+    setReady(true);
   }, [sessionId, isLocal]);
 
   if (!path) {
@@ -77,23 +66,27 @@ export default function SessionPageClient({
       <PageShell className="pb-16 pt-2">
         <AppHeader />
         <main className="py-6 sm:py-10">
-          <Link href="/analyze" className="text-label text-primary/70 hover:text-primary">
+          <Link
+            href="/analyze"
+            className="text-label text-primary/70 hover:text-primary"
+          >
             ← Back
           </Link>
 
-          {!session ? (
+          {!ready ? (
             <div className="mt-8 space-y-4">
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-12 w-3/4" />
               <Skeleton className="glass-card h-32 w-full" />
             </div>
           ) : (
-            <QuestionEngine
+            <AdaptiveQuestionEngine
               sessionId={sessionId}
               path={path}
-              initialAnswers={session.answers}
-              initialQuestionId={session.current_question_id ?? undefined}
-              localMode={isLocal || !!getLocalSession(sessionId)}
+              localMode={isLocal}
+              initialQuestion={bootstrap.question}
+              initialProfile={bootstrap.profile}
+              initialSummary={bootstrap.assessment_summary}
             />
           )}
         </main>

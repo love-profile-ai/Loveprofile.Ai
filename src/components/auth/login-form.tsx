@@ -10,7 +10,8 @@ import {
   signInWithEmail,
   signInWithGoogle,
 } from "@/hooks/use-auth";
-import { ArrowRight, CheckCircle2, Loader2, Mail, Shield, Sparkles } from "lucide-react";
+import { ArrowRight, Loader2, Mail, Shield, Sparkles } from "lucide-react";
+import { SITE_NAME } from "@/lib/site";
 
 export function LoginForm() {
   const router = useRouter();
@@ -95,40 +96,10 @@ export function LoginForm() {
   }
 
   return (
-    <div className="grid w-full max-w-5xl overflow-hidden rounded-[2rem] border border-white/70 bg-white/58 shadow-2xl shadow-primary/12 backdrop-blur-2xl dark:border-white/10 dark:bg-white/[0.055] dark:shadow-black/30 lg:grid-cols-[0.9fr_1fr]">
-      <div className="relative hidden overflow-hidden border-r border-primary/10 p-8 lg:block">
-        <div className="absolute -left-20 -top-20 size-64 rounded-full bg-primary/20 blur-3xl" />
-        <div className="absolute -bottom-24 right-0 size-64 rounded-full bg-gold/18 blur-3xl" />
-        <div className="relative flex h-full flex-col justify-between">
-          <div>
-            <p className="text-label">Private by design</p>
-            <h2 className="mt-4 font-display text-4xl font-semibold leading-tight tracking-[-0.03em]">
-              Your reflection space, beautifully protected.
-            </h2>
-            <p className="text-lead mt-5">
-              Start instantly as a guest, or sign in when you want saved reports
-              across devices.
-            </p>
-          </div>
-          <div className="space-y-3">
-            {[
-              "No public profile",
-              "Guest mode available",
-              "Reports stay under your control",
-            ].map((item) => (
-              <div key={item} className="flex items-center gap-3 rounded-2xl bg-white/45 p-3 text-sm font-semibold text-foreground/70 dark:bg-white/[0.055]">
-                <CheckCircle2 className="size-4 text-primary" />
-                {item}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="p-6 sm:p-8 lg:p-10">
-        <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/8 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
+    <div className="premium-card w-full overflow-hidden p-6 sm:p-8 lg:p-10">
+      <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/8 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
           <Sparkles className="size-3.5" />
-          {autoStart ? "Preparing your space" : "Welcome to Signal"}
+          {autoStart ? "Preparing your space" : `Welcome to ${SITE_NAME}`}
         </div>
 
         <h1 className="font-display text-4xl font-semibold tracking-[-0.035em] text-foreground">
@@ -233,7 +204,6 @@ export function LoginForm() {
             Back to home
           </Link>
         </div>
-      </div>
     </div>
   );
 }

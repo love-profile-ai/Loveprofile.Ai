@@ -9,13 +9,37 @@ export interface AdminUser {
   approval_status: string;
 }
 
-export async function getCurrentAdmin(): Promise<AdminUser | null> {
+export type AdminAccessReason =
+  | "ok"
+  | "not_authenticated"
+  | "no_profile"
+  | "pending_approval"
+  | "not_admin"
+  | "blocked";
+
+export interface AdminAccessStatus {
+  allowed: boolean;
+  reason: AdminAccessReason;
+  email: string | null;
+  role: string | null;
+  approval_status: string | null;
+}
+
+export async function getAdminAccessStatus(): Promise<AdminAccessStatus> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return null;
+  if (!user) {
+    return {
+      allowed: false,
+      reason: "not_authenticated",
+      email: null,
+      role: null,
+      approval_status: null,
+    };
+  }
 
   const admin = createAdminClient();
   const { data: profile, error } = await admin
@@ -24,8 +48,76 @@ export async function getCurrentAdmin(): Promise<AdminUser | null> {
     .eq("id", user.id)
     .single();
 
-  if (error || !profile) return null;
-  if (profile.role !== "admin" || profile.approval_status !== "approved") {
+  if (error || !profile) {
+    return {
+      allowed: false,
+      reason: "no_profile",
+      email: user.email ?? null,
+      role: null,
+      approval_status: null,
+    };
+  }
+
+  const blockedStatuses = new Set(["rejected", "blocked", "suspended", "inactive"]);
+  if (blockedStatuses.has(profile.approval_status)) {
+    return {
+      allowed: false,
+      reason: "blocked",
+      email: profile.email ?? user.email ?? null,
+      role: profile.role,
+      approval_status: profile.approval_status,
+    };
+  }
+
+  if (profile.approval_status !== "approved") {
+    return {
+      allowed: false,
+      reason: "pending_approval",
+      email: profile.email ?? user.email ?? null,
+      role: profile.role,
+      approval_status: profile.approval_status,
+    };
+  }
+
+  if (profile.role !== "admin") {
+    return {
+      allowed: false,
+      reason: "not_admin",
+      email: profile.email ?? user.email ?? null,
+      role: profile.role,
+      approval_status: profile.approval_status,
+    };
+  }
+
+  return {
+    allowed: true,
+    reason: "ok",
+    email: profile.email ?? user.email ?? null,
+    role: profile.role,
+    approval_status: profile.approval_status,
+  };
+}
+
+export async function getCurrentAdmin(): Promise<AdminUser | null> {
+  const status = await getAdminAccessStatus();
+  if (!status.allowed || !status.email) {
+    if (!status.allowed) return null;
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const admin = createAdminClient();
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("id,email,role,approval_status")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile || profile.role !== "admin" || profile.approval_status !== "approved") {
     return null;
   }
 

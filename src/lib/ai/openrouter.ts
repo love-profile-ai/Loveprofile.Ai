@@ -15,7 +15,7 @@ export function createOpenRouterClient() {
     defaultHeaders: {
       "HTTP-Referer":
         process.env.OPENROUTER_SITE_URL ?? "http://localhost:3000",
-      "X-Title": process.env.OPENROUTER_APP_NAME ?? "Signal",
+      "X-Title": process.env.OPENROUTER_APP_NAME ?? "Loveprofile.Ai",
     },
   });
 }
