@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient, hasAdminCredentials } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-
 export interface AdminUser {
   id: string;
   email: string | null;
@@ -36,6 +35,16 @@ export async function getAdminAccessStatus(): Promise<AdminAccessStatus> {
       allowed: false,
       reason: "not_authenticated",
       email: null,
+      role: null,
+      approval_status: null,
+    };
+  }
+
+  if (!hasAdminCredentials()) {
+    return {
+      allowed: false,
+      reason: "no_profile",
+      email: user.email ?? null,
       role: null,
       approval_status: null,
     };
@@ -100,9 +109,8 @@ export async function getAdminAccessStatus(): Promise<AdminAccessStatus> {
 
 export async function getCurrentAdmin(): Promise<AdminUser | null> {
   const status = await getAdminAccessStatus();
-  if (!status.allowed || !status.email) {
-    if (!status.allowed) return null;
-  }
+  if (!status.allowed) return null;
+  if (!hasAdminCredentials()) return null;
 
   const supabase = await createClient();
   const {

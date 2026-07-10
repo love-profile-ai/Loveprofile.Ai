@@ -95,9 +95,60 @@ WHERE email = 'your-email@example.com';
 
 3. Open **http://localhost:3000/admin**
 
+## GitHub
+
+**Repository:** [love-profile-ai/Loveprofile.Ai](https://github.com/love-profile-ai/Loveprofile.Ai)
+
+```bash
+git remote set-url origin https://github.com/love-profile-ai/Loveprofile.Ai.git
+```
+
+### Fix "Permission denied to mouleshwaran2008-cmd"
+
+Git is signed in as the wrong GitHub account. Use **one** of these:
+
+**Option A — Sign in as `love-profile-ai` (recommended)**
+
+```powershell
+# Double-click or run:
+scripts\github-login.bat
+
+# Then push:
+git push -u origin main
+```
+
+Sign in as **love-profile-ai** when the browser opens.
+
+**Option B — Add your other account as collaborator**
+
+1. Log into GitHub as **love-profile-ai**
+2. Open **Loveprofile.Ai → Settings → Collaborators**
+3. Add **mouleshwaran2008-cmd** with **Write** access
+4. Run `git push -u origin main` again
+
+**Option C — Push with a personal access token**
+
+1. Create a token at [github.com/settings/tokens](https://github.com/settings/tokens) (classic, `repo` scope) while logged in as **love-profile-ai**
+2. Run:
+
+```powershell
+$env:GITHUB_TOKEN = "ghp_your_token_here"
+.\scripts\github-push.ps1
+```
+
 ## Deploy (Vercel)
 
-1. Connect the repository to Vercel.
-2. Add the same environment variables from `.env.example`.
-3. Set `OPENROUTER_SITE_URL` to your production URL (e.g. `https://loveprofile.ai`).
-4. Deploy.
+1. Connect [love-profile-ai/Loveprofile.Ai](https://github.com/love-profile-ai/Loveprofile.Ai) to Vercel.
+2. **Add all environment variables** before deploying (Project → Settings → Environment Variables):
+
+| Variable | Required |
+|----------|----------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes |
+| `OPENROUTER_API_KEY` | Yes |
+| `OPENROUTER_SITE_URL` | Yes — set to your Vercel URL after first deploy |
+| `OPENROUTER_APP_NAME` | Yes — `Loveprofile.Ai` |
+
+3. Redeploy after adding env vars.
+4. Run Supabase migrations (`supabase/BOOTSTRAP_MIN.sql` or 001–004) if not done yet.

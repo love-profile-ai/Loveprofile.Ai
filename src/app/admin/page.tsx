@@ -1,9 +1,13 @@
 import { getAdminAccessStatus } from "@/lib/admin/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { hasAdminCredentials, createAdminClient } from "@/lib/supabase/admin";
 import { AdminClient } from "@/app/admin/admin-client";
 import { AdminBootstrapPanel } from "@/app/admin/admin-bootstrap-panel";
 
+export const dynamic = "force-dynamic";
+
 async function canBootstrapFirstAdmin() {
+  if (!hasAdminCredentials()) return false;
+
   const admin = createAdminClient();
   const { count, error } = await admin
     .from("profiles")
