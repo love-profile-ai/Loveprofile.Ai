@@ -41,8 +41,14 @@ function applyDelta(profile: UserProfile, delta: ScoreDelta): UserProfile {
     ...profile,
     love_score: clampScore(profile.love_score + (delta.love ?? 0)),
     crush_score: clampScore(profile.crush_score + (delta.crush ?? 0)),
+    friendship_score: clampScore(
+      profile.friendship_score + (delta.friendship ?? 0)
+    ),
     trust_score: clampScore(profile.trust_score + (delta.trust ?? 0)),
     attachment_score: clampScore(profile.attachment_score + (delta.attachment ?? 0)),
+    commitment_score: clampScore(
+      profile.commitment_score + (delta.commitment ?? 0)
+    ),
     future_score: clampScore(profile.future_score + (delta.future ?? 0)),
     communication_score: clampScore(
       profile.communication_score + (delta.communication ?? 0)
@@ -53,6 +59,9 @@ function applyDelta(profile: UserProfile, delta: ScoreDelta): UserProfile {
     ),
     emotional_attraction_score: clampScore(
       profile.emotional_attraction_score + (delta.emotional_attraction ?? 0)
+    ),
+    reciprocity_score: clampScore(
+      profile.reciprocity_score + (delta.reciprocity ?? 0)
     ),
   };
 }

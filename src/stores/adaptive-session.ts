@@ -21,10 +21,18 @@ import { fromEnginePath, toEnginePath } from "@/lib/engine/map-path";
 import type { AnalysisPath } from "@/types/questionnaire";
 import { saveLocalReport } from "@/lib/local-report";
 
+/** Single source of truth for what's on screen — prevents out-of-sync flags. */
+export type AssessmentStatus =
+  | "asking"
+  | "submitting"
+  | "generating-report"
+  | "done";
+
 interface AdaptiveSessionState {
   sessionId: string | null;
   path: EnginePath | null;
   localMode: boolean;
+  status: AssessmentStatus;
   currentQuestion: Question | null;
   profile: UserProfile;
   assessmentSummary: AssessmentSummary | null;
@@ -33,10 +41,8 @@ interface AdaptiveSessionState {
   extraQuestions: Question[];
   questionNumber: number;
   confidence: number;
-  finished: boolean;
-  loading: boolean;
-  generating: boolean;
   error: string | null;
+  reportId: string | null;
 
   initSession: (
     sessionId: string,
@@ -57,6 +63,7 @@ export const useAdaptiveSession = create<AdaptiveSessionState>((set, get) => ({
   sessionId: null,
   path: null,
   localMode: false,
+  status: "asking",
   currentQuestion: null,
   profile: createEmptyProfile(),
   assessmentSummary: null,
@@ -65,10 +72,8 @@ export const useAdaptiveSession = create<AdaptiveSessionState>((set, get) => ({
   extraQuestions: [],
   questionNumber: 1,
   confidence: 0,
-  finished: false,
-  loading: false,
-  generating: false,
   error: null,
+  reportId: null,
 
   initSession: (sessionId, path, localMode, firstQuestion, profile, assessmentSummary) => {
     const enginePath = toEnginePath(path);
@@ -81,6 +86,7 @@ export const useAdaptiveSession = create<AdaptiveSessionState>((set, get) => ({
       sessionId,
       path: enginePath,
       localMode,
+      status: "asking",
       currentQuestion: question,
       profile: emptyProfile,
       assessmentSummary: assessmentSummary ?? createEmptySummary(enginePath),
@@ -89,10 +95,8 @@ export const useAdaptiveSession = create<AdaptiveSessionState>((set, get) => ({
       extraQuestions: [],
       questionNumber: 1,
       confidence: emptyProfile.confidence_score,
-      finished: false,
-      loading: false,
-      generating: false,
       error: null,
+      reportId: null,
     });
   },
 
@@ -108,13 +112,21 @@ export const useAdaptiveSession = create<AdaptiveSessionState>((set, get) => ({
       extraQuestions,
       localMode,
       path,
+      status,
     } = state;
 
-    if (!sessionId || !currentQuestion || !path || !assessmentSummary) {
+    if (
+      !sessionId ||
+      !currentQuestion ||
+      !path ||
+      !assessmentSummary ||
+      status !== "asking"
+    ) {
       return { finished: false };
     }
 
-    set({ loading: true, error: null });
+    // Enter submitting — question stays visible but button disabled
+    set({ status: "submitting", error: null });
     const value = serializeAnswerValue(rawValue);
 
     try {
@@ -133,45 +145,52 @@ export const useAdaptiveSession = create<AdaptiveSessionState>((set, get) => ({
           throw new Error(data.error ?? "Failed to submit answer");
         }
 
+        const newAnswer: SessionAnswerRecord = {
+          id: crypto.randomUUID(),
+          session_id: sessionId,
+          question_id: currentQuestion.id,
+          value,
+          score_deltas: data.scoreDeltas ?? {},
+          is_uncertain: false,
+          created_at: new Date().toISOString(),
+        };
+
         if (data.finished) {
+          // Finished: jump straight to generating-report — never update currentQuestion
           set({
-            generating: true,
-            loading: false,
-            finished: true,
-            assessmentSummary: data.assessment_summary ?? assessmentSummary,
+            status: "generating-report",
+            profile: data.profile,
+            assessmentSummary: data.assessmentSummary ?? assessmentSummary,
+            confidence: data.confidence,
+            questionNumber: data.questionNumber,
+            answers: [...answers, newAnswer],
+            // currentQuestion intentionally left as-is; UI won't render it
           });
+
           const reportRes = await fetch(`/api/session/${sessionId}/report`);
           const reportData = await reportRes.json();
           if (!reportRes.ok) {
             throw new Error(reportData.error ?? "Failed to generate report");
           }
-          set({ generating: false, loading: false });
+
+          set({ status: "done", reportId: reportData.reportId });
           return { finished: true, reportId: reportData.reportId };
         }
 
+        // Continue: only now advance to the next question
         set({
-          currentQuestion: data.question,
+          status: "asking",
+          currentQuestion: data.nextQuestion,
           profile: data.profile,
-          assessmentSummary: data.assessment_summary ?? assessmentSummary,
+          assessmentSummary: data.assessmentSummary ?? assessmentSummary,
           confidence: data.confidence,
           questionNumber: data.questionNumber,
-          answers: [
-            ...answers,
-            {
-              id: crypto.randomUUID(),
-              session_id: sessionId,
-              question_id: currentQuestion.id,
-              value,
-              score_deltas: data.score_deltas ?? {},
-              is_uncertain: false,
-              created_at: new Date().toISOString(),
-            },
-          ],
-          loading: false,
+          answers: [...answers, newAnswer],
         });
         return { finished: false };
       }
 
+      // Local mode
       const allQuestions = [...questions, ...extraQuestions];
       const result = await processAnswer({
         question: currentQuestion,
@@ -197,14 +216,12 @@ export const useAdaptiveSession = create<AdaptiveSessionState>((set, get) => ({
 
       if (result.finished) {
         set({
-          generating: true,
+          status: "generating-report",
           profile: result.profile,
           answers: [...answers, result.newAnswer],
           assessmentSummary: updatedSummary,
           confidence: result.profile.confidence_score,
           extraQuestions: nextExtra,
-          loading: false,
-          finished: true,
         });
 
         const finalized = finalizeAssessmentSummary(updatedSummary, result.profile);
@@ -248,11 +265,12 @@ export const useAdaptiveSession = create<AdaptiveSessionState>((set, get) => ({
           assessment_summary: finalized,
         });
 
-        set({ generating: false });
+        set({ status: "done", reportId });
         return { finished: true, reportId };
       }
 
       set({
+        status: "asking",
         currentQuestion: result.next_question,
         profile: result.profile,
         assessmentSummary: updatedSummary,
@@ -260,14 +278,12 @@ export const useAdaptiveSession = create<AdaptiveSessionState>((set, get) => ({
         confidence: result.profile.confidence_score,
         questionNumber: state.questionNumber + 1,
         extraQuestions: nextExtra,
-        loading: false,
       });
       return { finished: false };
     } catch (err) {
       set({
+        status: "asking",
         error: err instanceof Error ? err.message : "Something went wrong",
-        loading: false,
-        generating: false,
       });
       return { finished: false };
     }
@@ -278,6 +294,7 @@ export const useAdaptiveSession = create<AdaptiveSessionState>((set, get) => ({
       sessionId: null,
       path: null,
       localMode: false,
+      status: "asking",
       currentQuestion: null,
       profile: createEmptyProfile(),
       assessmentSummary: null,
@@ -286,9 +303,7 @@ export const useAdaptiveSession = create<AdaptiveSessionState>((set, get) => ({
       extraQuestions: [],
       questionNumber: 1,
       confidence: 0,
-      finished: false,
-      loading: false,
-      generating: false,
       error: null,
+      reportId: null,
     }),
 }));

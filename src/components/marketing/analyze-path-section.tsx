@@ -36,8 +36,8 @@ const paths = [
       "Spot emotional patterns & attachment",
       "Understand if it's love, crush, or admiration",
     ],
-    accent:
-      "from-primary/16 via-blush/60 to-gold/10 dark:from-primary/20 dark:via-white/[0.04] dark:to-gold/8",
+    accent: "accent-rose",
+    gradient: "from-primary/14 via-lavender/8 to-transparent",
   },
   {
     id: "someone_likes_me" as const,
@@ -49,8 +49,8 @@ const paths = [
       "See green flags & red flags",
       "Gauge their level of interest",
     ],
-    accent:
-      "from-coral/12 via-white/65 to-primary/10 dark:from-coral/15 dark:via-white/[0.035] dark:to-primary/10",
+    accent: "accent-coral",
+    gradient: "from-coral/12 via-gold/8 to-transparent",
   },
 ];
 
@@ -131,7 +131,7 @@ export function AnalyzePathSection({
                 onClick={() => !loading && onStart(path.id)}
               >
                 <div
-                  className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${path.accent} opacity-80 transition-opacity group-hover:opacity-100`}
+                  className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${path.gradient} opacity-90`}
                 />
                 <CardHeader className="relative p-6 pb-2">
                   <span className="mb-5 flex size-14 items-center justify-center rounded-2xl border border-primary/15 bg-white/70 shadow-lg shadow-primary/10 backdrop-blur-xl dark:bg-white/[0.07]">

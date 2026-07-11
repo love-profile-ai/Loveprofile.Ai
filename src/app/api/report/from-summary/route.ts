@@ -85,13 +85,16 @@ function profileFromSummary(summary: AssessmentSummary) {
     ...createEmptyProfile(),
     love_score: scores.love ?? 0,
     crush_score: scores.crush ?? 0,
+    friendship_score: scores.friendship ?? 0,
     trust_score: scores.trust ?? 0,
     attachment_score: scores.attachment ?? 0,
+    commitment_score: scores.commitment ?? 0,
     future_score: scores.future ?? 0,
     communication_score: scores.communication ?? 0,
     jealousy_score: scores.jealousy ?? 0,
     physical_attraction_score: scores.physical_attraction ?? 0,
     emotional_attraction_score: scores.emotional_attraction ?? 0,
+    reciprocity_score: scores.reciprocity ?? 0,
     confidence_score: summary.confidence_percent,
     asked_question_ids: Array.from({ length: summary.questions_answered }, (_, i) =>
       String(i)

@@ -9,24 +9,30 @@ export type QuestionType = "single_select" | "slider" | "multi_select";
 export type PsychologicalDimension =
   | "love"
   | "crush"
+  | "friendship"
   | "trust"
   | "attachment"
+  | "commitment"
   | "future"
   | "communication"
   | "jealousy"
   | "physical_attraction"
-  | "emotional_attraction";
+  | "emotional_attraction"
+  | "reciprocity";
 
 export const ALL_DIMENSIONS: PsychologicalDimension[] = [
   "love",
   "crush",
+  "friendship",
   "trust",
   "attachment",
+  "commitment",
   "future",
   "communication",
   "jealousy",
   "physical_attraction",
   "emotional_attraction",
+  "reciprocity",
 ];
 
 export interface QuestionOption {
@@ -95,13 +101,16 @@ export interface Answer {
 export interface ScoreDelta {
   love?: number;
   crush?: number;
+  friendship?: number;
   trust?: number;
   attachment?: number;
+  commitment?: number;
   future?: number;
   communication?: number;
   jealousy?: number;
   physical_attraction?: number;
   emotional_attraction?: number;
+  reciprocity?: number;
   confidence?: number;
 }
 
@@ -110,13 +119,16 @@ export type DimensionCertainty = Partial<Record<PsychologicalDimension, number>>
 export interface UserProfile {
   love_score: number;
   crush_score: number;
+  friendship_score: number;
   trust_score: number;
   attachment_score: number;
+  commitment_score: number;
   future_score: number;
   communication_score: number;
   jealousy_score: number;
   physical_attraction_score: number;
   emotional_attraction_score: number;
+  reciprocity_score: number;
   confidence_score: number;
   dimension_certainty: DimensionCertainty;
   asked_question_ids: string[];
@@ -166,6 +178,32 @@ export interface EngineStepResult {
   next_question: Question | null;
   score_deltas?: ScoreDelta;
 }
+
+interface AnswerResponseCommon {
+  decision: EngineDecision;
+  profile: UserProfile;
+  assessmentSummary: AssessmentSummary;
+  confidence: number;
+  questionNumber: number;
+  scoreDeltas?: ScoreDelta;
+}
+
+export interface FinishedAnswerResponse extends AnswerResponseCommon {
+  finished: true;
+  sessionId: string;
+  nextQuestion?: never;
+}
+
+export interface NextQuestionAnswerResponse extends AnswerResponseCommon {
+  finished: false;
+  nextQuestion: Question;
+  sessionId?: never;
+}
+
+/** Mutually exclusive API result for POST /api/session/[id]/answer. */
+export type AnswerResponse =
+  | FinishedAnswerResponse
+  | NextQuestionAnswerResponse;
 
 export interface StructuredReport {
   relationship_type: string;

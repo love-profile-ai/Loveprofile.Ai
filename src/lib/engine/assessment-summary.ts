@@ -30,13 +30,16 @@ function dimensionScoresFromProfile(profile: UserProfile): Record<string, number
   return {
     love: getDimensionScore(profile, "love"),
     crush: getDimensionScore(profile, "crush"),
+    friendship: getDimensionScore(profile, "friendship"),
     trust: getDimensionScore(profile, "trust"),
     attachment: getDimensionScore(profile, "attachment"),
+    commitment: getDimensionScore(profile, "commitment"),
     future: getDimensionScore(profile, "future"),
     communication: getDimensionScore(profile, "communication"),
     jealousy: getDimensionScore(profile, "jealousy"),
     physical_attraction: getDimensionScore(profile, "physical_attraction"),
     emotional_attraction: getDimensionScore(profile, "emotional_attraction"),
+    reciprocity: getDimensionScore(profile, "reciprocity"),
   };
 }
 
@@ -109,6 +112,9 @@ function inferTheme(question: Question, deltas: ScoreDelta): string | null {
   if (love >= 10 || crush >= 10) return "Romantic interest signals";
   if (trust >= 10) return "Trust and emotional safety";
   if (deltas.attachment && deltas.attachment >= 10) return "Attachment and closeness";
+  if (deltas.friendship && deltas.friendship >= 10) return "Friendship foundation";
+  if (deltas.commitment && deltas.commitment >= 10) return "Commitment readiness";
+  if (deltas.reciprocity && deltas.reciprocity >= 10) return "Reciprocity and balanced effort";
   if (question.psychological_dimension === "communication") return "Communication patterns";
   if (question.psychological_dimension === "future") return "Future orientation";
   return null;

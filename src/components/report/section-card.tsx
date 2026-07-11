@@ -16,15 +16,16 @@ export function SectionCard({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay }}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ delay, duration: 0.5, ease: "easeOut" }}
     >
-      <Card className="glass-card">
+      <Card className="glass-card rounded-3xl">
         <CardHeader>
-          <CardTitle className="font-display text-lg font-bold tracking-[-0.01em]">{title}</CardTitle>
+          <CardTitle className="font-display text-xl font-semibold tracking-tight">{title}</CardTitle>
         </CardHeader>
-        <CardContent className="text-base font-medium leading-relaxed text-foreground/75">{children}</CardContent>
+        <CardContent className="text-base font-medium leading-relaxed text-foreground/72">{children}</CardContent>
       </Card>
     </motion.div>
   );
@@ -38,18 +39,23 @@ export function FlagsList({
   type: "green" | "red";
 }) {
   const Icon = type === "green" ? CheckCircle2 : AlertTriangle;
-  const color = type === "green" ? "text-green-600" : "text-red-500";
 
   if (flags.length === 0) {
     return <p className="text-sm text-muted-foreground">None identified.</p>;
   }
 
   return (
-    <ul className="space-y-2.5">
+    <ul className="space-y-3">
       {flags.map((flag) => (
-        <li key={flag} className="flex items-start gap-2.5 text-sm font-medium leading-relaxed">
-          <Icon className={cn("mt-0.5 size-4 shrink-0", color)} />
-          <span className="text-foreground/80">{flag}</span>
+        <li
+          key={flag}
+          className={cn(
+            "flex items-start gap-3 rounded-2xl p-4 text-sm font-semibold leading-relaxed",
+            type === "green" ? "flag-green" : "flag-red"
+          )}
+        >
+          <Icon className="mt-0.5 size-4 shrink-0" />
+          <span>{flag}</span>
         </li>
       ))}
     </ul>

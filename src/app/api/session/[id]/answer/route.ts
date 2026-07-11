@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import type { AnswerValue, SessionAnswerRecord } from "@/types/adaptive-engine";
+import type {
+  AnswerResponse,
+  AnswerValue,
+  SessionAnswerRecord,
+} from "@/types/adaptive-engine";
 import {
   loadQuestionsForPath,
   profileFromRow,
@@ -121,33 +125,71 @@ export async function POST(
     return NextResponse.json({ error: "Failed to save answer" }, { status: 500 });
   }
 
-  await supabase
+  const { error: profileUpdateError } = await supabase
     .from("assessment_profiles")
     .update(profileToRow(result.profile, assessment_summary))
     .eq("session_id", sessionId);
 
-  const newCount = (session.question_count ?? 0) + 1;
-
-  if (result.finished) {
-    await supabase
-      .from("assessment_sessions")
-      .update({ status: "completed", question_count: newCount })
-      .eq("id", sessionId);
-  } else {
-    await supabase
-      .from("assessment_sessions")
-      .update({ question_count: newCount })
-      .eq("id", sessionId);
+  if (profileUpdateError) {
+    return NextResponse.json(
+      { error: "Failed to update assessment profile" },
+      { status: 500 }
+    );
   }
 
-  return NextResponse.json({
-    finished: result.finished,
+  const newCount = (session.question_count ?? 0) + 1;
+  const finished = result.finished || result.next_question === null;
+
+  const { error: sessionUpdateError } = await supabase
+    .from("assessment_sessions")
+    .update({
+      ...(finished ? { status: "completed" } : {}),
+      question_count: newCount,
+    })
+    .eq("id", sessionId);
+
+  if (sessionUpdateError) {
+    return NextResponse.json(
+      { error: "Failed to update assessment session" },
+      { status: 500 }
+    );
+  }
+
+  if (finished) {
+    const response = {
+      finished: true,
+      sessionId,
+      decision: result.decision,
+      profile: result.profile,
+      assessmentSummary: assessment_summary,
+      confidence: result.profile.confidence_score,
+      questionNumber: newCount,
+      scoreDeltas: result.score_deltas,
+    } satisfies AnswerResponse;
+
+    return NextResponse.json(response);
+  }
+
+  // The finished branch above handles a null next question, so this branch can
+  // only expose a real next question. A response never contains both signals.
+  const nextQuestion = result.next_question;
+  if (!nextQuestion) {
+    return NextResponse.json(
+      { error: "Engine returned an invalid continuation state" },
+      { status: 500 }
+    );
+  }
+
+  const response = {
+    finished: false,
+    nextQuestion,
     decision: result.decision,
     profile: result.profile,
-    assessment_summary,
-    question: result.next_question,
+    assessmentSummary: assessment_summary,
     confidence: result.profile.confidence_score,
-    questionNumber: newCount + (result.finished ? 0 : 1),
-    score_deltas: result.score_deltas,
-  });
+    questionNumber: newCount + 1,
+    scoreDeltas: result.score_deltas,
+  } satisfies AnswerResponse;
+
+  return NextResponse.json(response);
 }

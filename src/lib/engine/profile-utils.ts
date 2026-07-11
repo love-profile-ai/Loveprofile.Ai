@@ -10,13 +10,16 @@ export function createEmptyProfile(): UserProfile {
   return {
     love_score: 0,
     crush_score: 0,
+    friendship_score: 0,
     trust_score: 0,
     attachment_score: 0,
+    commitment_score: 0,
     future_score: 0,
     communication_score: 0,
     jealousy_score: 0,
     physical_attraction_score: 0,
     emotional_attraction_score: 0,
+    reciprocity_score: 0,
     confidence_score: 0,
     dimension_certainty: {},
     asked_question_ids: [],
@@ -54,13 +57,9 @@ export function isDimensionConfidentlyAnswered(
 }
 
 export function allRequiredDimensionsCovered(profile: UserProfile): boolean {
-  const required: PsychologicalDimension[] = [
-    "love",
-    "trust",
-    "attachment",
-    "communication",
-  ];
-  return required.every((d) => isDimensionConfidentlyAnswered(profile, d));
+  return ALL_DIMENSIONS.every((dimension) =>
+    isDimensionConfidentlyAnswered(profile, dimension)
+  );
 }
 
 export function countMeasuredDimensions(profile: UserProfile): number {
@@ -90,8 +89,14 @@ export function mergeDimensionCertainty(
   incoming: number
 ): DimensionCertainty {
   const prev = current[dimension] ?? 0;
+  const boundedIncoming = Math.max(0, Math.min(1, incoming));
+
+  // Independent evidence accumulates with diminishing returns. The old
+  // Math.max behavior meant sibling questions did not raise certainty.
+  const accumulated = prev + boundedIncoming * (1 - prev);
+
   return {
     ...current,
-    [dimension]: Math.min(1, Math.max(prev, incoming)),
+    [dimension]: Math.min(1, accumulated),
   };
 }

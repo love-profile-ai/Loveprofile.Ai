@@ -101,9 +101,9 @@ export default function DashboardPage() {
       <main className="py-6 sm:py-10">
         <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
           <div className="premium-card p-7 sm:p-9">
-            <p className="text-label">Relationship workspace</p>
+            <p className="text-label">Growth</p>
             <h1 className="text-heading-page mt-3">
-              Welcome back to your <em className="text-display-accent">private insights.</em>
+              Your relationship <em className="text-display-accent">journey.</em>
             </h1>
             <p className="text-lead mt-5 max-w-2xl">
               Review your analyses, start a new reflection, and track how your

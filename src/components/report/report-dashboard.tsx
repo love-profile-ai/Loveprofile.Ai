@@ -183,7 +183,7 @@ export function ReportDashboard({ report }: { report: ReportRecord }) {
         <div className="relative p-6 sm:p-10 lg:p-12">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/8 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.2em] text-primary/80">
             <Sparkles className="size-3.5" />
-            Relationship Analysis Report
+            Your reflection · Discovery
           </div>
 
           <div className="mt-8 grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
@@ -220,39 +220,49 @@ export function ReportDashboard({ report }: { report: ReportRecord }) {
 
           {(greenFlags.shown.length > 0 || redFlags.shown.length > 0) && (
             <div className="mt-10 grid gap-5 md:grid-cols-2">
-              <div className="relative overflow-hidden rounded-[1.5rem] border border-emerald-200/45 bg-emerald-50/45 p-6 shadow-lg shadow-emerald-900/5 dark:border-emerald-500/15 dark:bg-emerald-400/8">
-                <div className="pointer-events-none absolute -bottom-8 -right-8 size-32 rounded-full bg-green-200/30 blur-2xl" />
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="glass-card overflow-hidden rounded-3xl p-6"
+              >
                 <SectionHeader
                   icon={Flag}
                   title="Green Flags"
-                  iconClass="bg-green-500"
+                  iconClass="bg-[#3B6D11]"
                 />
                 <div className="relative mt-4">
                   <FlagsList flags={greenFlags.shown} type="green" />
                   {greenFlags.extra > 0 && (
-                    <p className="mt-3 text-xs font-medium text-green-700/70">
+                    <p className="mt-3 text-xs font-medium text-sage/70">
                       +{greenFlags.extra} more
                     </p>
                   )}
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="relative overflow-hidden rounded-[1.5rem] border border-rose-200/45 bg-rose-50/40 p-6 shadow-lg shadow-rose-900/5 dark:border-rose-500/15 dark:bg-rose-400/8">
-                <div className="pointer-events-none absolute -bottom-8 -right-8 size-32 rounded-full bg-red-200/30 blur-2xl" />
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="glass-card overflow-hidden rounded-3xl p-6"
+              >
                 <SectionHeader
                   icon={Flag}
                   title="Red Flags"
-                  iconClass="bg-rose-500"
+                  iconClass="bg-[#A32D2D]"
                 />
                 <div className="relative mt-4">
                   <FlagsList flags={redFlags.shown} type="red" />
                   {redFlags.extra > 0 && (
-                    <p className="mt-3 text-xs font-medium text-red-600/70">
+                    <p className="mt-3 text-xs font-medium text-flag-red/70">
                       +{redFlags.extra} more
                     </p>
                   )}
                 </div>
-              </div>
+              </motion.div>
             </div>
           )}
 

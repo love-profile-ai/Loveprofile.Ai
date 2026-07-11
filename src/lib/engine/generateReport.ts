@@ -44,10 +44,13 @@ function buildStrengths(profile: UserProfile): string[] {
   const checks: [string, number][] = [
     ["Emotional warmth in your answers", getDimensionScore(profile, "love")],
     ["Excitement and spark", getDimensionScore(profile, "crush")],
+    ["A genuine friendship foundation", getDimensionScore(profile, "friendship")],
     ["Trust foundation", getDimensionScore(profile, "trust")],
     ["Emotional closeness", getDimensionScore(profile, "attachment")],
+    ["Readiness for sustained commitment", getDimensionScore(profile, "commitment")],
     ["Open communication", getDimensionScore(profile, "communication")],
     ["Future-oriented thinking", getDimensionScore(profile, "future")],
+    ["Balanced mutual effort", getDimensionScore(profile, "reciprocity")],
   ];
 
   for (const [label, score] of checks) {
@@ -64,6 +67,9 @@ function buildUncertaintyAreas(profile: UserProfile): string[] {
   const dims: [string, ReturnType<typeof getDimensionScore>][] = [
     ["How strong romantic love feels", getDimensionScore(profile, "love")],
     ["Trust and emotional safety", getDimensionScore(profile, "trust")],
+    ["Friendship beyond romantic chemistry", getDimensionScore(profile, "friendship")],
+    ["Commitment beyond immediate feelings", getDimensionScore(profile, "commitment")],
+    ["Whether effort is genuinely reciprocal", getDimensionScore(profile, "reciprocity")],
     ["Long-term compatibility", getDimensionScore(profile, "future")],
     ["Physical vs emotional attraction balance", Math.abs(
       getDimensionScore(profile, "physical_attraction") -
@@ -136,13 +142,16 @@ export function generateStructuredReport(
   const dimension_scores: Record<string, number> = {
     love: getDimensionScore(profile, "love"),
     crush: getDimensionScore(profile, "crush"),
+    friendship: getDimensionScore(profile, "friendship"),
     trust: getDimensionScore(profile, "trust"),
     attachment: getDimensionScore(profile, "attachment"),
+    commitment: getDimensionScore(profile, "commitment"),
     future: getDimensionScore(profile, "future"),
     communication: getDimensionScore(profile, "communication"),
     jealousy: getDimensionScore(profile, "jealousy"),
     physical_attraction: getDimensionScore(profile, "physical_attraction"),
     emotional_attraction: getDimensionScore(profile, "emotional_attraction"),
+    reciprocity: getDimensionScore(profile, "reciprocity"),
   };
 
   const summary = `${relationship_type}. ${emotional_connection} Confidence in this read: ${confidence_percent}% (${confidence_label}). This reflects your answers only — not a definitive verdict.`;

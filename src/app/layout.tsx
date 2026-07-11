@@ -1,21 +1,17 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
+import { Fraunces, Manrope } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
   style: ["normal", "italic"],
   weight: ["400", "500", "600", "700"],
@@ -23,15 +19,15 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: {
-    default: `${SITE_NAME} — ${SITE_TAGLINE}`,
-    template: `%s | ${SITE_NAME}`,
+    default: `Nila — ${SITE_TAGLINE}`,
+    template: `%s | Nila`,
   },
   description:
-    "Understand your relationship through AI-powered reflection. No scores — just thoughtful, evidence-based insights.",
+    "A guided, romantic AI relationship reflection — from first question to your personalized report.",
   openGraph: {
-    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    title: `Nila — ${SITE_TAGLINE}`,
     description:
-      "Discover what your relationship signals really mean with personalized AI analysis.",
+      "Enter a private relationship journal powered by AI. Understand the patterns beneath your feelings.",
     type: "website",
   },
 };
@@ -44,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} min-h-screen antialiased`}
+        className={`${manrope.variable} ${fraunces.variable} min-h-screen antialiased`}
       >
         <Providers>{children}</Providers>
       </body>
