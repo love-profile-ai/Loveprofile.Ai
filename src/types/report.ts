@@ -2,9 +2,9 @@ export type ConfidenceLevel = "Low" | "Medium" | "High";
 
 export interface AnalysisReport {
   summary: string;
+  /** Reflective narrative grounded in the user's actual answers. */
+  ai_summary: string;
   confidence: ConfidenceLevel;
-  green_flags: string[];
-  red_flags: string[];
   what_we_noticed: string[];
   gentle_next_steps: string[];
   looking_ahead: string;

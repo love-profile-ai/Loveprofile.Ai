@@ -129,6 +129,7 @@ export function AdaptiveQuestionEngine({
     status,
     error,
     reportId,
+    phase,
   } = useAdaptiveSession();
 
   useEffect(() => {
@@ -174,6 +175,7 @@ export function AdaptiveQuestionEngine({
         questionNumber={questionNumber}
         confidence={confidence}
         dimensionCoverage={Object.keys(profile.dimension_certainty).length}
+        phase={phase}
       />
 
       <AnimatePresence mode="wait">
@@ -186,7 +188,7 @@ export function AdaptiveQuestionEngine({
           className="mt-10"
         >
           <p className="text-label">
-            Reflection {questionNumber}
+            {phase === "foundation" ? "Foundation" : "Reflection"} {questionNumber}
             {currentQuestion.is_clarification ? " · Clarifying" : ""}
           </p>
           <h2 className="text-question mt-4">{currentQuestion.question_text}</h2>

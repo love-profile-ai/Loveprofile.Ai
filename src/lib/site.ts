@@ -1,4 +1,4 @@
-export const SITE_NAME = "Nila";
+export const SITE_NAME = "LoveProfile AI";
 export const SITE_TAGLINE = "AI relationship reflection";
 export const SITE_DOMAIN = "loveprofile.ai";
 export const SUPPORT_EMAIL = "support@loveprofile.ai";

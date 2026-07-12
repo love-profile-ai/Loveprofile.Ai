@@ -1,57 +1,64 @@
 "use client";
 
-import { useRef, useMemo, useEffect } from "react";
+import { useRef, useMemo, useEffect, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float, Stars } from "@react-three/drei";
 import * as THREE from "three";
+import { useTheme } from "next-themes";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { SmoothHeart3D } from "@/components/marketing/smooth-heart-3d";
+import { ORB_THEME, type OrbTheme } from "@/components/marketing/orb-theme";
 
-function OrbCore({ mouse }: { mouse: React.MutableRefObject<{ x: number; y: number }> }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+function OrbCore({ theme }: { theme: OrbTheme }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const palette = ORB_THEME[theme];
 
   useFrame((state) => {
-    if (!meshRef.current) return;
+    if (!groupRef.current) return;
     const t = state.clock.elapsedTime;
-    meshRef.current.rotation.y = t * 0.12;
-    meshRef.current.rotation.x = Math.sin(t * 0.08) * 0.08 + mouse.current.y * 0.15;
-    meshRef.current.position.x = mouse.current.x * 0.25;
-    meshRef.current.position.y = mouse.current.y * 0.15;
+    groupRef.current.rotation.y = t * 0.1;
+    groupRef.current.rotation.x = Math.sin(t * 0.06) * 0.06;
   });
 
   return (
-    <Float speed={1.2} rotationIntensity={0.15} floatIntensity={0.4}>
-      <mesh ref={meshRef}>
-        <sphereGeometry args={[1.15, 64, 64]} />
-        <meshStandardMaterial
-          color="#E8A5B0"
-          emissive="#B9AEDE"
-          emissiveIntensity={0.35}
-          roughness={0.35}
-          metalness={0.15}
-        />
-      </mesh>
-      <mesh scale={1.22}>
-        <sphereGeometry args={[1.15, 32, 32]} />
-        <meshBasicMaterial
-          color="#E8A5B0"
-          transparent
-          opacity={0.12}
-          side={THREE.BackSide}
-        />
-      </mesh>
+    <Float speed={0.9} rotationIntensity={0.1} floatIntensity={0.32}>
+      <group ref={groupRef}>
+        <SmoothHeart3D theme={theme} />
+
+        <mesh>
+          <sphereGeometry args={[1.15, 64, 64]} />
+          <meshPhysicalMaterial
+            color={palette.shell.color}
+            emissive={palette.shell.emissive}
+            emissiveIntensity={palette.shell.emissiveIntensity}
+            roughness={0.14}
+            metalness={0.06}
+            clearcoat={0.78}
+            clearcoatRoughness={0.18}
+            transparent
+            opacity={palette.shell.opacity}
+            depthWrite={false}
+            iridescence={0.2}
+            iridescenceIOR={1.25}
+          />
+        </mesh>
+
+        <mesh scale={1.24}>
+          <sphereGeometry args={[1.15, 32, 32]} />
+          <meshBasicMaterial
+            color={palette.halo.color}
+            transparent
+            opacity={palette.halo.opacity}
+            side={THREE.BackSide}
+            depthWrite={false}
+          />
+        </mesh>
+      </group>
     </Float>
   );
 }
 
-function Ribbon({
-  offset,
-  color,
-  mouse,
-}: {
-  offset: number;
-  color: string;
-  mouse: React.MutableRefObject<{ x: number; y: number }>;
-}) {
+function Ribbon({ offset, color }: { offset: number; color: string }) {
   const ref = useRef<THREE.Mesh>(null);
   const curve = useMemo(() => {
     const points: THREE.Vector3[] = [];
@@ -77,8 +84,7 @@ function Ribbon({
   useFrame((state) => {
     if (!ref.current) return;
     const t = state.clock.elapsedTime;
-    ref.current.rotation.y = t * 0.18 + offset;
-    ref.current.position.x = mouse.current.x * 0.1;
+    ref.current.rotation.y = t * 0.14 + offset;
   });
 
   return (
@@ -86,34 +92,39 @@ function Ribbon({
       <meshStandardMaterial
         color={color}
         emissive={color}
-        emissiveIntensity={0.6}
+        emissiveIntensity={0.82}
         transparent
-        opacity={0.85}
-        roughness={0.2}
+        opacity={0.92}
+        roughness={0.14}
       />
     </mesh>
   );
 }
 
-function Scene({ mouse }: { mouse: React.MutableRefObject<{ x: number; y: number }> }) {
+function Scene({ theme }: { theme: OrbTheme }) {
+  const palette = ORB_THEME[theme];
+  const { ambient, key, fill, rim, accent } = palette.lights;
+
   return (
     <>
-      <ambientLight intensity={0.45} />
-      <pointLight position={[4, 4, 4]} intensity={1.2} color="#F4EFEA" />
-      <pointLight position={[-3, -2, 2]} intensity={0.6} color="#B9AEDE" />
-      <pointLight position={[0, -4, -2]} intensity={0.4} color="#F2926F" />
+      <ambientLight intensity={ambient.intensity} color={ambient.color} />
+      <directionalLight position={[3, 4, 6]} intensity={key.intensity} color={key.color} />
+      <pointLight position={[-4, -1, 4]} intensity={fill.intensity} color={fill.color} distance={20} />
+      <pointLight position={[4, 4, 4]} intensity={rim.intensity} color={rim.color} distance={20} />
+      <pointLight position={[-3, -2, 2]} intensity={accent.intensity} color={accent.color} distance={20} />
       <Stars
         radius={60}
         depth={40}
-        count={1200}
-        factor={2.5}
-        saturation={0.4}
+        count={palette.stars.count}
+        factor={palette.stars.factor}
+        saturation={palette.stars.saturation}
         fade
-        speed={0.35}
+        speed={0.28}
       />
-      <OrbCore mouse={mouse} />
-      <Ribbon offset={0} color="#E8A5B0" mouse={mouse} />
-      <Ribbon offset={Math.PI} color="#B9AEDE" mouse={mouse} />
+      <OrbCore theme={theme} />
+      <Ribbon offset={0} color={palette.ribbons.rose} />
+      <Ribbon offset={(Math.PI * 2) / 3} color={palette.ribbons.lavender} />
+      <Ribbon offset={(Math.PI * 4) / 3} color={palette.ribbons.coral} />
     </>
   );
 }
@@ -124,28 +135,37 @@ interface NilaOrbProps {
 
 export function NilaOrb({ className }: NilaOrbProps) {
   const reduced = useReducedMotion();
-  const mouse = useRef({ x: 0, y: 0 });
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    if (reduced) return;
-    function onMove(e: MouseEvent) {
-      mouse.current.x = (e.clientX / window.innerWidth - 0.5) * 2;
-      mouse.current.y = -(e.clientY / window.innerHeight - 0.5) * 2;
-    }
-    window.addEventListener("mousemove", onMove);
-    return () => window.removeEventListener("mousemove", onMove);
-  }, [reduced]);
+  useEffect(() => setMounted(true), []);
+
+  const orbTheme: OrbTheme = mounted && resolvedTheme === "dark" ? "dark" : "light";
 
   if (reduced) {
+    const heartGradient =
+      orbTheme === "dark"
+        ? "from-[#FF4D7E] via-[#C9A0E8] to-[#E9C46A]"
+        : "from-[#FF5C8A] via-[#F2926F] to-[#9B7FD4]";
+    const orbGradient =
+      orbTheme === "dark"
+        ? "radial-gradient(circle at 50% 45%, rgba(255,100,150,0.55), rgba(185,174,222,0.32) 55%, transparent 72%)"
+        : "radial-gradient(circle at 50% 45%, rgba(255,140,170,0.6), rgba(242,146,111,0.28) 50%, rgba(155,127,212,0.18) 65%, transparent 75%)";
+
     return (
-      <div
-        className={className}
-        aria-hidden
-        style={{
-          background:
-            "radial-gradient(circle at 50% 45%, rgba(232,165,176,0.45), rgba(185,174,222,0.2) 55%, transparent 72%)",
-        }}
-      />
+      <div className={className} aria-hidden>
+        <div className="flex h-full w-full items-center justify-center">
+          <div
+            className="flex size-64 items-center justify-center rounded-full"
+            style={{ background: orbGradient }}
+          >
+            <div
+              className={`size-20 rounded-[40%_40%_36%_36%] bg-gradient-to-br ${heartGradient} shadow-lg shadow-primary/30`}
+              style={{ transform: "rotate(-8deg)" }}
+            />
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -157,7 +177,7 @@ export function NilaOrb({ className }: NilaOrbProps) {
         gl={{ alpha: true, antialias: true }}
         style={{ background: "transparent" }}
       >
-        <Scene mouse={mouse} />
+        <Scene theme={orbTheme} />
       </Canvas>
     </div>
   );

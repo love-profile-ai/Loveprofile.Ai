@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import type {
   AssessmentSummary,
+  AssessmentPhase,
   EnginePath,
   Question,
   SessionAnswerRecord,
@@ -10,8 +11,15 @@ import type {
 } from "@/types/adaptive-engine";
 import { createEmptyProfile } from "@/lib/engine/profile-utils";
 import { getSeedQuestionsForPath } from "@/lib/engine/seed-questions";
-import { selectFirstQuestion } from "@/lib/engine/selectQuestion";
 import { processAnswer, serializeAnswerValue } from "@/lib/engine/runner";
+import {
+  getAssessmentPhase,
+  getFirstFoundationQuestion,
+  getAdaptiveQuestionAfterFoundation,
+  getFoundationQuestions,
+  isFoundationQuestionId,
+  processFoundationAnswer,
+} from "@/lib/engine/foundation-phase";
 import {
   createEmptySummary,
   updateAssessmentSummary,
@@ -20,6 +28,33 @@ import {
 import { fromEnginePath, toEnginePath } from "@/lib/engine/map-path";
 import type { AnalysisPath } from "@/types/questionnaire";
 import { saveLocalReport } from "@/lib/local-report";
+
+function toLegacyAnswers(
+  path: EnginePath,
+  records: SessionAnswerRecord[],
+  adaptiveQuestions: Question[]
+) {
+  const lookup = new Map<string, Question>();
+  for (const q of getFoundationQuestions(path)) lookup.set(q.id, q);
+  for (const q of adaptiveQuestions) lookup.set(q.id, q);
+
+  return records.map((a) => {
+    const q = lookup.get(a.question_id);
+    const qType = q?.type ?? "single_select";
+    const legacyType =
+      qType === "slider"
+        ? "scale"
+        : qType === "multi_select"
+          ? "multiple_choice"
+          : "multiple_choice";
+    return {
+      questionId: a.question_id,
+      questionText: q?.question_text ?? a.question_id,
+      type: legacyType as import("@/types/questionnaire").QuestionType,
+      value: a.value.raw as string | number | boolean,
+    };
+  });
+}
 
 /** Single source of truth for what's on screen — prevents out-of-sync flags. */
 export type AssessmentStatus =
@@ -41,6 +76,7 @@ interface AdaptiveSessionState {
   extraQuestions: Question[];
   questionNumber: number;
   confidence: number;
+  phase: AssessmentPhase;
   error: string | null;
   reportId: string | null;
 
@@ -72,15 +108,40 @@ export const useAdaptiveSession = create<AdaptiveSessionState>((set, get) => ({
   extraQuestions: [],
   questionNumber: 1,
   confidence: 0,
+  phase: "foundation",
   error: null,
   reportId: null,
 
   initSession: (sessionId, path, localMode, firstQuestion, profile, assessmentSummary) => {
     const enginePath = toEnginePath(path);
-    const questions = getSeedQuestionsForPath(enginePath);
     const emptyProfile = profile ?? createEmptyProfile();
     const question =
-      firstQuestion ?? selectFirstQuestion(questions, emptyProfile);
+      firstQuestion ?? getFirstFoundationQuestion(enginePath);
+
+    if (localMode) {
+      const localQuestions = getSeedQuestionsForPath(enginePath);
+      console.warn(
+        `WARNING: Local mode uses bundled seed questions (${localQuestions.length} for ${enginePath}).`
+      );
+      set({
+        sessionId,
+        path: enginePath,
+        localMode,
+        status: "asking",
+        currentQuestion: question,
+        profile: emptyProfile,
+        assessmentSummary: assessmentSummary ?? createEmptySummary(enginePath),
+        answers: [],
+        questions: localQuestions,
+        extraQuestions: [],
+        questionNumber: 1,
+        confidence: emptyProfile.confidence_score,
+        phase: getAssessmentPhase(emptyProfile, enginePath),
+        error: null,
+        reportId: null,
+      });
+      return;
+    }
 
     set({
       sessionId,
@@ -91,10 +152,11 @@ export const useAdaptiveSession = create<AdaptiveSessionState>((set, get) => ({
       profile: emptyProfile,
       assessmentSummary: assessmentSummary ?? createEmptySummary(enginePath),
       answers: [],
-      questions,
+      questions: [],
       extraQuestions: [],
       questionNumber: 1,
       confidence: emptyProfile.confidence_score,
+      phase: getAssessmentPhase(emptyProfile, enginePath),
       error: null,
       reportId: null,
     });
@@ -163,6 +225,7 @@ export const useAdaptiveSession = create<AdaptiveSessionState>((set, get) => ({
             assessmentSummary: data.assessmentSummary ?? assessmentSummary,
             confidence: data.confidence,
             questionNumber: data.questionNumber,
+            phase: data.phase ?? "adaptive",
             answers: [...answers, newAnswer],
             // currentQuestion intentionally left as-is; UI won't render it
           });
@@ -185,6 +248,7 @@ export const useAdaptiveSession = create<AdaptiveSessionState>((set, get) => ({
           assessmentSummary: data.assessmentSummary ?? assessmentSummary,
           confidence: data.confidence,
           questionNumber: data.questionNumber,
+          phase: data.phase ?? "adaptive",
           answers: [...answers, newAnswer],
         });
         return { finished: false };
@@ -192,6 +256,104 @@ export const useAdaptiveSession = create<AdaptiveSessionState>((set, get) => ({
 
       // Local mode
       const allQuestions = [...questions, ...extraQuestions];
+
+      if (isFoundationQuestionId(currentQuestion.id)) {
+        const foundationResult = processFoundationAnswer({
+          path,
+          question: currentQuestion,
+          value,
+          profile,
+          answers,
+        });
+
+        const updatedSummary = updateAssessmentSummary(
+          assessmentSummary,
+          currentQuestion,
+          value,
+          foundationResult.profile,
+          foundationResult.score_deltas,
+          foundationResult.newAnswer.is_uncertain
+        );
+
+        const updatedAnswers = [...answers, foundationResult.newAnswer];
+
+        if (
+          !foundationResult.foundationComplete &&
+          foundationResult.nextFoundationQuestion
+        ) {
+          set({
+            status: "asking",
+            currentQuestion: foundationResult.nextFoundationQuestion,
+            profile: foundationResult.profile,
+            assessmentSummary: updatedSummary,
+            answers: updatedAnswers,
+            confidence: foundationResult.profile.confidence_score,
+            questionNumber: state.questionNumber + 1,
+            phase: "foundation",
+          });
+          return { finished: false };
+        }
+
+        const transition = await getAdaptiveQuestionAfterFoundation({
+          profile: foundationResult.profile,
+          answers: updatedAnswers,
+          questions: allQuestions,
+        });
+
+        if (transition.finished || !transition.nextQuestion) {
+          set({
+            status: "generating-report",
+            profile: foundationResult.profile,
+            answers: updatedAnswers,
+            assessmentSummary: updatedSummary,
+            confidence: foundationResult.profile.confidence_score,
+            phase: "adaptive",
+          });
+
+          const finalized = finalizeAssessmentSummary(
+            updatedSummary,
+            foundationResult.profile
+          );
+          const reportRes = await fetch("/api/report/from-summary", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              path: fromEnginePath(path),
+              summary: finalized,
+            }),
+          });
+          const reportData = await reportRes.json();
+          if (!reportRes.ok) {
+            throw new Error(reportData.error ?? "Failed to generate report");
+          }
+
+          const reportId = crypto.randomUUID();
+          saveLocalReport({
+            id: reportId,
+            title: reportData.title ?? "Relationship Reflection",
+            path: fromEnginePath(path),
+            answers: toLegacyAnswers(path, updatedAnswers, allQuestions),
+            analysis: reportData.analysis,
+            assessment_summary: finalized,
+          });
+
+          set({ status: "done", reportId });
+          return { finished: true, reportId };
+        }
+
+        set({
+          status: "asking",
+          currentQuestion: transition.nextQuestion,
+          profile: foundationResult.profile,
+          assessmentSummary: updatedSummary,
+          answers: updatedAnswers,
+          confidence: foundationResult.profile.confidence_score,
+          questionNumber: state.questionNumber + 1,
+          phase: "adaptive",
+        });
+        return { finished: false };
+      }
+
       const result = await processAnswer({
         question: currentQuestion,
         value,
@@ -239,22 +401,11 @@ export const useAdaptiveSession = create<AdaptiveSessionState>((set, get) => ({
         }
 
         const reportId = crypto.randomUUID();
-        const legacyAnswers = [...answers, result.newAnswer].map((a) => {
-          const q = allQuestions.find((item) => item.id === a.question_id);
-          const qType = q?.type ?? "single_select";
-          const legacyType =
-            qType === "slider"
-              ? "scale"
-              : qType === "multi_select"
-                ? "multiple_choice"
-                : "multiple_choice";
-          return {
-            questionId: a.question_id,
-            questionText: q?.question_text ?? a.question_id,
-            type: legacyType as import("@/types/questionnaire").QuestionType,
-            value: a.value.raw as string | number | boolean,
-          };
-        });
+        const legacyAnswers = toLegacyAnswers(
+          path,
+          [...answers, result.newAnswer],
+          allQuestions
+        );
 
         saveLocalReport({
           id: reportId,
@@ -277,6 +428,7 @@ export const useAdaptiveSession = create<AdaptiveSessionState>((set, get) => ({
         answers: [...answers, result.newAnswer],
         confidence: result.profile.confidence_score,
         questionNumber: state.questionNumber + 1,
+        phase: "adaptive",
         extraQuestions: nextExtra,
       });
       return { finished: false };
@@ -303,6 +455,7 @@ export const useAdaptiveSession = create<AdaptiveSessionState>((set, get) => ({
       extraQuestions: [],
       questionNumber: 1,
       confidence: 0,
+      phase: "foundation",
       error: null,
       reportId: null,
     }),

@@ -1,5 +1,6 @@
 import type { AnalysisReport } from "@/types/report";
 import type { AssessmentSummary } from "@/types/adaptive-engine";
+import type { PersonalizationLayerInput } from "@/lib/engine/report-personalization-inputs";
 
 export const ANALYSIS_SYSTEM_PROMPT = `You are an expert relationship psychologist, behavioral analyst, and communication specialist.
 
@@ -110,9 +111,8 @@ Return ONLY valid JSON matching this exact schema (no markdown, no extra keys):
 
 {
   "summary": "2-4 sentences — Relationship Summary. Personalized, evidence-based, acknowledges uncertainty where needed.",
+  "ai_summary": "3-5 sentences — a warm, cohesive narrative woven from the user's strongest answer patterns. Reference specific things they said (paraphrased). No bullet lists, no green/red framing.",
   "confidence": "Low | Medium | High",
-  "green_flags": ["2-5 specific positive indicators from the strongest evidence only"],
-  "red_flags": ["0-4 specific concerns from the strongest evidence only — omit if none"],
   "what_we_noticed": ["2-4 distinct observations — What We Noticed. Each item one insight, no repetition."],
   "gentle_next_steps": ["2-4 actionable, situation-specific suggestions — Gentle Next Steps"],
   "looking_ahead": "1-3 sentences — Looking Ahead. Possible trajectories without guarantees."
@@ -144,7 +144,7 @@ Rules:
 - Base conclusions only on the summary provided
 - Acknowledge uncertainty where caution_areas or low confidence indicate
 - Write naturally; avoid generic advice
-- Return ONLY valid JSON with these keys: summary, confidence (Low|Medium|High), green_flags, red_flags, what_we_noticed, gentle_next_steps, looking_ahead
+- Return ONLY valid JSON with these keys: summary, ai_summary, confidence (Low|Medium|High), what_we_noticed, gentle_next_steps, looking_ahead
 - No markdown, no extra keys`;
 
 export const CHAT_SYSTEM_PROMPT = `You are a compassionate relationship coach continuing a prior analysis session.
@@ -156,6 +156,226 @@ Rules:
 - Acknowledge uncertainty when appropriate
 - Do not assign numeric scores
 - Keep responses concise (2-4 paragraphs max)`;
+
+export const QUESTION_SELECTION_SYSTEM_PROMPT = `You are the question-selection engine for Nila, a relationship reflection tool.
+
+Your job: choose the SINGLE best next question to ask, given the user's
+answers so far. You are not talking to the user directly — you are picking
+from a candidate pool and may lightly rephrase the chosen question for
+natural flow.
+
+CONTEXT
+Dimensions being profiled: trust_emotional_safety, communication_clarity,
+attraction_balance, long_term_compatibility.
+
+Current dimension confidence scores (0-100, higher = more data collected,
+not more positive):
+{{dimension_scores_json}}
+
+Answers so far (question id, text, answer, inferred signal):
+{{answer_history_json}}
+
+Candidate question pool (not yet asked):
+{{remaining_questions_json}}
+
+SELECTION RULES
+1. Prioritize the dimension with the LOWEST confidence score — that's the
+   one you know the least about.
+2. If the last answer indicated strong uncertainty or a low score on a
+   dimension, prefer a follow-up question tagged to that same dimension
+   (deeper probe) over switching topics.
+3. Never repeat a question already asked.
+4. Do not choose two questions from the same narrow sub-topic back to back
+   unless the previous answer was ambiguous.
+5. If all dimensions have reached sufficient confidence (threshold: {{n}}
+   questions each), return "COMPLETE" instead of a question.
+
+OUTPUT — return ONLY this JSON, no other text:
+{
+  "next_question_id": "q_014",
+  "reasoning": "one short internal sentence, not shown to user",
+  "rephrased_text": "optional natural-language rephrasing of the question,
+    or null to use the original text as-is"
+}
+
+When complete, use:
+{
+  "next_question_id": "COMPLETE",
+  "reasoning": "all profile dimensions have sufficient coverage",
+  "rephrased_text": null
+}`;
+
+export interface QuestionSelectionAnswerRecord {
+  question_id: string;
+  question_text: string;
+  answer: string | number | boolean | string[];
+  inferred_signal: string;
+  profile_dimension: string;
+  category: string;
+}
+
+export interface QuestionSelectionCandidate {
+  id: string;
+  text: string;
+  profile_dimension: string;
+  psychological_dimension: string;
+  category: string;
+  priority: number;
+}
+
+export function buildQuestionSelectionUserPrompt(input: {
+  dimensionScores: Record<string, number>;
+  answerHistory: QuestionSelectionAnswerRecord[];
+  candidates: QuestionSelectionCandidate[];
+  minQuestionsPerDimension: number;
+}): string {
+  return QUESTION_SELECTION_SYSTEM_PROMPT.replace(
+    "{{dimension_scores_json}}",
+    JSON.stringify(input.dimensionScores, null, 2)
+  )
+    .replace(
+      "{{answer_history_json}}",
+      JSON.stringify(input.answerHistory, null, 2)
+    )
+    .replace(
+      "{{remaining_questions_json}}",
+      JSON.stringify(input.candidates, null, 2)
+    )
+    .replace("{{n}}", String(input.minQuestionsPerDimension));
+}
+
+export const REFLECTIVE_REPORT_PROMPT = `You are generating a reflective relationship report for Nila. The user has
+answered a series of questions about a specific relationship. Your report
+must be grounded ONLY in what they actually said — never generic template
+language.
+
+FULL TRANSCRIPT (question, answer, dimension tag):
+{{full_qa_transcript_json}}
+
+COMPUTED DIMENSION SCORES (0-100 each, from deterministic scoring, not
+your judgment):
+{{computed_scores_json}}
+
+INSTRUCTIONS
+1. confidence must be derived from: (a) how many questions were answered,
+   (b) how consistent the answers were within each dimension, and (c) how
+   many answers were "unsure/mixed" type responses. Compute a number
+   0-100, don't default to a round number.
+2. ai_summary must weave SPECIFIC answer patterns from the transcript
+   into a cohesive 3-5 sentence narrative (paraphrased, not quoted).
+   Balance warmth with honesty — no green/red flag lists.
+3. gentle_next_steps must be different depending on which dimension scored
+   lowest — pull the two lowest-confidence dimensions and write a next
+   step specific to closing that gap, not a fixed four-item list.
+4. Do not use the same "looking_ahead" sentence across different reports.
+   Vary phrasing based on how much data was collected.
+
+OUTPUT JSON SCHEMA
+{
+  "summary": "...",
+  "ai_summary": "...",
+  "confidence": <integer 0-100>,
+  "confidence_label": "Low" | "Medium" | "High",
+  "what_we_noticed": ["...", "..."],
+  "gentle_next_steps": ["...", "..."],
+  "looking_ahead": "..."
+}`;
+
+export function buildReflectiveReportUserPrompt(input: {
+  transcript: unknown[];
+  computedScores: Record<string, number>;
+  pathLabel: string;
+}): string {
+  return `${REFLECTIVE_REPORT_PROMPT.replace(
+    "{{full_qa_transcript_json}}",
+    JSON.stringify(input.transcript, null, 2)
+  ).replace(
+    "{{computed_scores_json}}",
+    JSON.stringify(input.computedScores, null, 2)
+  )}
+
+Relationship path: ${input.pathLabel}
+
+Return ONLY valid JSON matching the schema. No markdown.`;
+}
+
+export const PERSONALIZATION_LAYER_PROMPT = `You are the personalization layer for Nila's relationship report. You are
+NOT interpreting raw data — everything below is already computed. Your
+only job is short, precise, natural-language translation. Do not add
+sections, do not explain your reasoning, do not exceed the requested
+lengths.
+
+INPUT
+dimension_scores: {{dimension_scores_json}}
+lowest_dimension: {{lowest_dimension}}
+highest_dimension: {{highest_dimension}}
+most_distinctive_answer: {{most_distinctive_answer_text}}
+notable_answers: {{notable_answers_json}}
+sample_answers_for_tone: {{2_3_sample_answers_json}}
+n_questions_answered: {{n}}
+answer_consistency: {{consistency_label}}
+
+TASKS
+1. archetype: 2-4 word phrase naming this relationship's current stage.
+   Must feel specific to the scores given, not generic. Examples of style
+   (do not reuse): "Cautious Warming", "Steady but Untested", "One-Sided
+   Spark". Avoid clinical words like "Analysis" or "Assessment".
+
+2. opener_line: ONE sentence, under 20 words, reflecting back
+   most_distinctive_answer naturally and warmly. Do not quote it verbatim
+   — paraphrase in your own words. No therapy-speak.
+
+3. tone_class: ONE word only, from: terse, reflective, anxious, calm,
+   guarded, open. Base this strictly on sample_answers_for_tone.
+
+4. ai_summary: 3-5 sentences weaving the user's notable_answers into one
+   warm, cohesive reflection. Paraphrase their answers — do not quote
+   verbatim. No bullet lists, no green/red framing. Ground every sentence
+   in something they actually said.
+
+5. next_step: ONE specific journaling question (not generic advice) the
+   user could sit with this week, targeted at lowest_dimension and
+   grounded in why that dimension is unresolved. Under 25 words.
+
+6. looking_ahead: ONE sentence. Tone shifts with n_questions_answered and
+   answer_consistency — more certain and grounded at high confidence,
+   more patient and open-ended at low confidence. Never reuse "Stay
+   patient with ambiguity" verbatim.
+
+OUTPUT — JSON only, no other text:
+{
+  "archetype": "...",
+  "opener_line": "...",
+  "tone_class": "...",
+  "ai_summary": "...",
+  "next_step": "...",
+  "looking_ahead": "..."
+}`;
+
+export function buildPersonalizationLayerPrompt(
+  input: PersonalizationLayerInput
+): string {
+  return PERSONALIZATION_LAYER_PROMPT.replace(
+    "{{dimension_scores_json}}",
+    JSON.stringify(input.dimension_scores, null, 2)
+  )
+    .replace("{{lowest_dimension}}", input.lowest_dimension)
+    .replace("{{highest_dimension}}", input.highest_dimension)
+    .replace(
+      "{{most_distinctive_answer_text}}",
+      input.most_distinctive_answer
+    )
+    .replace(
+      "{{notable_answers_json}}",
+      JSON.stringify(input.notable_answers, null, 2)
+    )
+    .replace(
+      "{{2_3_sample_answers_json}}",
+      JSON.stringify(input.sample_answers_for_tone, null, 2)
+    )
+    .replace("{{n}}", String(input.n_questions_answered))
+    .replace("{{consistency_label}}", input.answer_consistency);
+}
 
 export function buildAnalysisUserPrompt(
   path: "i_like_someone" | "someone_likes_me",

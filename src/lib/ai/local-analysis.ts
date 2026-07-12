@@ -67,26 +67,26 @@ function analyzeOwnFeelings(answers: Answer[]): AnalysisReport {
     timeScore,
   ]);
 
-  const green_flags: string[] = [];
-  const red_flags: string[] = [];
+  const positives: string[] = [];
+  const concerns: string[] = [];
   const mixed_signals: string[] = [];
 
-  if (trustScore >= 7) green_flags.push("You trust this person deeply");
-  if (comfortScore >= 7) green_flags.push("You feel safe being your authentic self");
+  if (trustScore >= 7) positives.push("you trust this person deeply");
+  if (comfortScore >= 7) positives.push("you feel safe being your authentic self around them");
   if (miss === "often" || miss === "almost_always") {
-    green_flags.push("You miss them when apart — a sign of emotional attachment");
+    positives.push("you miss them when apart");
   }
   if (remember === "often" || remember === "almost_always") {
-    green_flags.push("You notice and remember details about them");
+    positives.push("you notice and remember small details about them");
   }
   if (future === "often" || future === "very_often") {
-    green_flags.push("You can picture a future that includes them");
+    positives.push("you can picture a future that includes them");
   }
-  if (timeScore >= 7) green_flags.push("You prioritize them even when life is busy");
+  if (timeScore >= 7) positives.push("you prioritize them even when life is busy");
 
-  if (trustScore <= 4) red_flags.push("Trust still feels uncertain");
-  if (comfortScore <= 4) red_flags.push("You may not feel fully yourself around them yet");
-  if (frequency === "rarely") red_flags.push("Limited contact may make feelings harder to read");
+  if (trustScore <= 4) concerns.push("trust still feels uncertain");
+  if (comfortScore <= 4) concerns.push("you may not feel fully yourself around them yet");
+  if (frequency === "rarely") concerns.push("limited contact makes feelings harder to read");
   if (datingReaction === "happy" && emotionalIntensity >= 6) {
     mixed_signals.push("Strong inner attachment but outward reaction to them dating others sounds accepting");
   }
@@ -147,11 +147,23 @@ function analyzeOwnFeelings(answers: Answer[]): AnalysisReport {
         ? "You'd likely want clarity before deciding — pacing matters to you."
         : "A direct confession might surface questions about what you truly want long term.";
 
+  const ai_summary = [
+    positives.length
+      ? `Across your answers, ${positives.slice(0, 3).join(", ")}.`
+      : "Your answers show a connection that is still taking shape.",
+    concerns.length
+      ? `At the same time, ${concerns.slice(0, 2).join(" and ")}.`
+      : null,
+    mixed_signals.length ? mixed_signals[0] + "." : null,
+    `You interact ${frequency.replace(/_/g, " ")} and describe what you feel as "${feelingType.replace(/_/g, " ")}".`,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return {
     summary: `Based on your answers, your connection with this ${role.replace(/_/g, " ")} shows ${emotionalIntensity >= 6 ? "meaningful" : "some"} emotional pull. You interact ${frequency.replace(/_/g, " ")}, and you describe the feeling as "${feelingType.replace(/_/g, " ")}". This reflects patterns in your responses — not a guarantee about what you should feel.`,
+    ai_summary,
     confidence: conf,
-    green_flags,
-    red_flags,
     what_we_noticed,
     gentle_next_steps,
     looking_ahead,
@@ -179,26 +191,26 @@ function analyzeTheirInterest(answers: Answer[]): AnalysisReport {
 
   const interestScore = avg([engagement, makesTime, happyScore, openness, reciprocity]);
 
-  const green_flags: string[] = [];
-  const red_flags: string[] = [];
+  const positives: string[] = [];
+  const concerns: string[] = [];
   const mixed_signals: string[] = [];
 
-  if (engagement >= 7) green_flags.push("They stay engaged when talking with you");
+  if (engagement >= 7) positives.push("they stay engaged when talking with you");
   if (remembers === "often" || remembers === "almost_always") {
-    green_flags.push("They remember small details about you");
+    positives.push("they remember small details about you");
   }
   if (upset === "comfort" || upset === "go_out_of_way") {
-    green_flags.push("They show up when you're upset");
+    positives.push("they show up when you're upset");
   }
-  if (makesTime >= 7) green_flags.push("They make time for you despite being busy");
+  if (makesTime >= 7) positives.push("they make time for you despite being busy");
   if (compliments === "often" || compliments === "very_often") {
-    green_flags.push("They express appreciation regularly");
+    positives.push("they express appreciation regularly");
   }
-  if (introduced === "yes") green_flags.push("They've brought you into their inner circle");
+  if (introduced === "yes") positives.push("they've brought you into their inner circle");
 
-  if (engagement <= 4) red_flags.push("Conversations may feel one-sided or low energy");
-  if (reciprocity <= 4) red_flags.push("Your effort may not feel fully returned");
-  if (inRelationship === "yes") red_flags.push("They are currently in another relationship");
+  if (engagement <= 4) concerns.push("conversations may feel one-sided or low energy");
+  if (reciprocity <= 4) concerns.push("your effort may not feel fully returned");
+  if (inRelationship === "yes") concerns.push("they are currently in another relationship");
   if (expressed === "no" && interestScore >= 6) {
     mixed_signals.push("Warm behavior without clear romantic words");
   }
@@ -258,11 +270,23 @@ function analyzeTheirInterest(answers: Answer[]): AnalysisReport {
         ? "Watch whether romantic gestures increase over time, or stay consistently friendly."
         : "Without clearer signals, assuming friendship may be the safest read.";
 
+  const ai_summary = [
+    positives.length
+      ? `From what you shared, ${positives.slice(0, 3).join(", ")}.`
+      : "Their behavior reads fairly neutral from your answers so far.",
+    concerns.length
+      ? `You also noted that ${concerns.slice(0, 2).join(" and ")}.`
+      : null,
+    mixed_signals.length ? mixed_signals[0] + "." : null,
+    `You interact ${frequency.replace(/_/g, " ")} and your overall read is "${guess.replace(/_/g, " ")}".`,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return {
     summary: `You asked whether someone in your life (${role.replace(/_/g, " ")}) may have romantic feelings. Their engagement (${engagement}/10), effort (${reciprocity}/10 reciprocity), and your overall guess ("${guess.replace(/_/g, " ")}") suggest ${interestScore >= 6 ? "meaningful" : "moderate or unclear"} interest — but no analysis can read another person's heart with certainty.`,
+    ai_summary,
     confidence: conf,
-    green_flags,
-    red_flags,
     what_we_noticed,
     gentle_next_steps,
     looking_ahead,
@@ -279,7 +303,7 @@ export async function generateChatResponse(
   const lower = message.toLowerCase();
 
   if (lower.includes("sign") || lower.includes("signal")) {
-    return `Based on your report, key signals include: ${analysis.green_flags.slice(0, 2).join("; ") || "the patterns in your original answers"}. Remember — one gesture rarely proves romantic intent on its own. Look for consistency across time.`;
+    return `Based on your report: ${analysis.ai_summary.slice(0, 280)} Remember — one gesture rarely proves romantic intent on its own. Look for consistency across time.`;
   }
   if (lower.includes("should i") || lower.includes("what do i do")) {
     return `${analysis.gentle_next_steps[0]} ${analysis.gentle_next_steps[1] ?? ""} ${analysis.looking_ahead}`.trim();

@@ -1,4 +1,5 @@
 import type { EnginePath, Question } from "@/types/adaptive-engine";
+import { contentQuestionsToEngine } from "./question-content";
 
 /** Offline fallback question bank — mirrors migration 003 seed. */
 export const SEED_QUESTIONS: Question[] = [
@@ -277,5 +278,11 @@ export const SEED_QUESTIONS: Question[] = [
 ];
 
 export function getSeedQuestionsForPath(path: EnginePath): Question[] {
-  return SEED_QUESTIONS.filter((q) => q.path === path && q.is_active !== false);
+  const content = contentQuestionsToEngine().filter(
+    (q) => q.path === path && q.is_active !== false
+  );
+  const seed = SEED_QUESTIONS.filter(
+    (q) => q.path === path && q.is_active !== false
+  );
+  return [...seed, ...content];
 }

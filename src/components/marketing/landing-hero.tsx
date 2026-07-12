@@ -41,7 +41,7 @@ const howItWorks = [
   },
   {
     step: "02",
-    title: "Nila reads the patterns",
+    title: "LoveProfile reads the patterns",
     description: "Our engine maps emotional consistency, trust, communication, and closeness across dimensions.",
     icon: Sparkles,
     accent: "accent-gold",
@@ -49,7 +49,7 @@ const howItWorks = [
   {
     step: "03",
     title: "Receive your reflection",
-    description: "A magazine-style report with green flags, red flags, and compassionate next steps.",
+    description: "A magazine-style report with a personal AI summary and compassionate next steps.",
     icon: Heart,
     accent: "accent-lavender",
   },
@@ -60,25 +60,25 @@ const themes = [
     title: "Communication",
     description: "How you express needs, listen, and repair after tension.",
     accent: "accent-rose",
-    color: "#E8A5B0",
+    color: "#D4788A",
   },
   {
     title: "Trust",
     description: "Consistency, reliability, and emotional safety over time.",
     accent: "accent-gold",
-    color: "#E9C46A",
+    color: "#D4A84A",
   },
   {
     title: "Closeness",
     description: "Intimacy, affection, and the rhythm of staying connected.",
     accent: "accent-lavender",
-    color: "#B9AEDE",
+    color: "#9B87C8",
   },
   {
     title: "Conflict",
     description: "How disagreements surface, escalate, and resolve.",
     accent: "accent-coral",
-    color: "#F2926F",
+    color: "#E8785A",
   },
 ];
 
@@ -100,7 +100,7 @@ const testimonials = [
 const faqs = [
   {
     q: "Is this therapy or medical advice?",
-    a: "No. Nila is a self-reflection tool for educational purposes. It helps you organize what you already feel — it does not diagnose or replace professional support.",
+    a: `No. ${SITE_NAME} is a self-reflection tool for educational purposes. It helps you organize what you already feel — it does not diagnose or replace professional support.`,
   },
   {
     q: "Do I need an account?",
@@ -125,15 +125,15 @@ export function LandingHero() {
 
       <main className="relative mx-auto w-full max-w-6xl px-4 sm:px-6">
         {/* Hero — asymmetrical */}
-        <section className="grid items-center gap-8 py-16 lg:grid-cols-[1fr_1.1fr] lg:gap-4 lg:py-24">
+        <section className="hero-romantic-panel grid items-center gap-8 py-16 lg:grid-cols-[1fr_1.1fr] lg:gap-4 lg:py-24">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
-            className="relative z-10 max-w-xl"
+            className="relative z-10 max-w-xl rounded-[2rem] border border-primary/15 bg-gradient-to-br from-white/70 via-blush-wash/40 to-lavender-mist/30 p-8 shadow-xl shadow-primary/10 backdrop-blur-xl dark:border-primary/25 dark:bg-gradient-to-br dark:from-white/[0.09] dark:via-primary/10 dark:to-lavender/10 dark:shadow-black/30 sm:p-10"
           >
             <p className="text-label">Your private relationship journal</p>
-            <h1 className="text-display mt-4">
+            <h1 className="text-display mt-5">
               Understand the patterns beneath your{" "}
               <span className="text-display-accent">feelings.</span>
             </h1>
@@ -149,16 +149,23 @@ export function LandingHero() {
                 </Button>
               </Link>
               <Link href="/login">
-                <Button size="lg" variant="outline" className="h-14 rounded-full px-8">
+                <Button size="lg" variant="outline" className="btn-outline-romantic h-14 rounded-full px-8">
                   Sign in to save
                 </Button>
               </Link>
             </div>
-            <div className="mt-8 flex flex-wrap gap-4 text-sm font-semibold text-foreground/55">
-              {["Private by default", "No scoring people", "5 min guided path"].map((t) => (
-                <span key={t} className="inline-flex items-center gap-1.5">
-                  <Shield className="size-4 text-teal" />
-                  {t}
+            <div className="mt-8 flex flex-wrap gap-3">
+              {[
+                { label: "Private by default", color: "from-teal/15 to-teal/5 border-teal/25 text-teal dark:from-teal/20 dark:to-teal/8 dark:border-teal/35 dark:text-teal" },
+                { label: "No scoring people", color: "from-lavender/20 to-lavender/5 border-lavender/30 text-lavender dark:from-lavender/25 dark:to-lavender/8 dark:border-lavender/40 dark:text-lavender" },
+                { label: "5 min guided path", color: "from-primary/18 to-coral/8 border-primary/25 text-primary dark:from-primary/22 dark:to-coral/10 dark:border-primary/35 dark:text-primary" },
+              ].map((t) => (
+                <span
+                  key={t.label}
+                  className={`inline-flex items-center gap-1.5 rounded-full border bg-gradient-to-r px-3 py-1.5 text-xs font-bold ${t.color}`}
+                >
+                  <Shield className="size-3.5 shrink-0 opacity-80" />
+                  {t.label}
                 </span>
               ))}
             </div>
@@ -191,7 +198,7 @@ export function LandingHero() {
                   </span>
                   <p className="text-meta-footer mt-6">{item.step}</p>
                   <h3 className="font-display mt-2 text-xl font-semibold">{item.title}</h3>
-                  <p className="mt-3 text-sm font-medium leading-7 text-foreground/62">
+                  <p className="card-muted mt-3">
                     {item.description}
                   </p>
                 </div>
@@ -220,7 +227,7 @@ export function LandingHero() {
                     style={{ background: `linear-gradient(90deg, ${theme.color}, transparent)` }}
                   />
                   <h3 className="font-display text-2xl font-semibold">{theme.title}</h3>
-                  <p className="mt-3 text-sm font-medium leading-7 text-foreground/62">
+                  <p className="card-muted mt-3">
                     {theme.description}
                   </p>
                 </div>
@@ -266,14 +273,12 @@ export function LandingHero() {
                     </div>
                   </div>
 
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="flag-green rounded-3xl p-4">
-                      <p className="text-xs font-bold uppercase tracking-wider opacity-70">Green flag</p>
-                      <p className="mt-2 text-sm font-semibold">Emotional warmth is present</p>
-                    </div>
-                    <div className="flag-red rounded-3xl p-4">
-                      <p className="text-xs font-bold uppercase tracking-wider opacity-70">Red flag</p>
-                      <p className="mt-2 text-sm font-semibold">Inconsistent follow-through</p>
+                  <div className="grid gap-3 sm:grid-cols-1">
+                    <div className="rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/12 via-lavender/8 to-coral/6 p-5">
+                      <p className="text-xs font-bold uppercase tracking-wider text-primary/80">Your reflection</p>
+                      <p className="mt-2 text-sm font-semibold leading-relaxed text-foreground/78">
+                        There is warmth in how you answered — but clarity will come from consistency, not guessing.
+                      </p>
                     </div>
                   </div>
 
@@ -361,7 +366,7 @@ export function LandingHero() {
                 </p>
                 <Link href="/disclaimer" className="mt-8 inline-block">
                   <Button size="lg" className="btn-cta h-14 px-10">
-                    Begin with Nila
+                    Begin with {SITE_NAME}
                     <ArrowRight className="ml-2 size-4" />
                   </Button>
                 </Link>

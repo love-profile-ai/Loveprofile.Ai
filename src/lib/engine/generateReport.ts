@@ -173,11 +173,22 @@ export function generateStructuredReport(
 export function toAnalysisReport(
   structured: StructuredReport
 ): import("@/types/report").AnalysisReport {
+  const ai_summary = [
+    structured.emotional_connection,
+    structured.strengths.length
+      ? `What stands out: ${structured.strengths.slice(0, 3).join(". ")}.`
+      : null,
+    structured.uncertainty_areas.length
+      ? `Still unfolding: ${structured.uncertainty_areas.slice(0, 2).join("; ")}.`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return {
     summary: structured.summary,
+    ai_summary: ai_summary || structured.summary,
     confidence: structured.confidence_label,
-    green_flags: structured.strengths,
-    red_flags: structured.uncertainty_areas.map((u) => `Uncertainty: ${u}`),
     what_we_noticed: [
       structured.emotional_connection,
       `Relationship type: ${structured.relationship_type}`,

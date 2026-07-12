@@ -6,15 +6,7 @@ import type { AnswerValue, SessionAnswerRecord } from "@/types/adaptive-engine";
 
 import { fromEnginePath } from "@/lib/engine/map-path";
 
-import {
-
-  loadQuestionsForPath,
-
-  profileFromRow,
-
-  summaryFromProfileRow,
-
-} from "@/lib/engine/questions-loader";
+import { loadQuestions, profileFromRow, summaryFromProfileRow } from "@/lib/engine/question-bank";
 
 import { buildFinalReport } from "@/lib/engine/build-final-report";
 
@@ -118,7 +110,7 @@ export async function GET(
 
 
 
-  const questions = await loadQuestionsForPath(session.path);
+  const questions = await loadQuestions(session.path);
 
   const questionTextMap = new Map<string, { text: string; type: string }>();
 
@@ -152,13 +144,12 @@ export async function GET(
 
 
 
-  const { analysis, structured, finalSummary } = await buildFinalReport(
-
-    storedSummary,
-
-    profile
-
-  );
+  const { analysis, structured, finalSummary } = await buildFinalReport({
+    summary: storedSummary,
+    profile,
+    answers,
+    questions,
+  });
 
 
 

@@ -24,3 +24,9 @@ export const REQUIRED_DIMENSIONS = [
 ] as const;
 
 export const DIMENSION_CERTAINTY_THRESHOLD = 0.72;
+
+/** Min questions per profile dimension before LLM may return COMPLETE. */
+export const PROFILE_DIMENSION_MIN_QUESTIONS = 4;
+
+/** Max candidates passed to the LLM question selector. */
+export const LLM_CANDIDATE_POOL_SIZE = 15;

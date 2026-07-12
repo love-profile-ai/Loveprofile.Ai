@@ -7,6 +7,7 @@ import { DisclaimerCard } from "@/components/marketing/disclaimer-card";
 import { LandingNavbar } from "@/components/marketing/landing-navbar";
 import { FadeInView } from "@/components/motion/fade-in-view";
 import { hasAcceptedDisclaimer } from "@/lib/disclaimer";
+import { SITE_NAME } from "@/lib/site";
 import { Heart, Shield, Sparkles } from "lucide-react";
 
 const safetyCards = [
@@ -19,7 +20,7 @@ const safetyCards = [
   {
     icon: Heart,
     title: "Not Medical Advice",
-    description: "Nila supports thoughtful reflection. It does not replace therapy or professional care.",
+    description: `${SITE_NAME} supports thoughtful reflection. It does not replace therapy or professional care.`,
     accent: "accent-gold",
   },
   {
@@ -74,7 +75,7 @@ export default function DisclaimerPage() {
                 </span>
                 <div>
                   <h2 className="font-display text-xl font-semibold">{card.title}</h2>
-                  <p className="mt-2 text-sm font-medium leading-7 text-foreground/62">
+                  <p className="card-muted mt-2">
                     {card.description}
                   </p>
                 </div>

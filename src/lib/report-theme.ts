@@ -1,31 +1,33 @@
 import type { AnalysisReport } from "@/types/report";
 
+function summaryIncludes(analysis: AnalysisReport, ...terms: string[]) {
+  const text = `${analysis.summary} ${analysis.ai_summary}`.toLowerCase();
+  return terms.some((t) => text.includes(t));
+}
+
 const THEMES = [
   {
     title: "Mixed Signals",
     match: (a: AnalysisReport) =>
-      a.red_flags.length > 0 &&
-      a.green_flags.length > 0 &&
-      a.what_we_noticed.some((n) => n.toLowerCase().includes("mixed")),
-  },
-  {
-    title: "Mixed Signals",
-    match: (a: AnalysisReport) =>
-      a.red_flags.length >= 2 && a.green_flags.length >= 2,
+      a.what_we_noticed.some((n) => n.toLowerCase().includes("mixed")) ||
+      summaryIncludes(a, "mixed", "unclear", "contradict"),
   },
   {
     title: "Growing Connection",
     match: (a: AnalysisReport) =>
-      a.green_flags.length >= 3 && a.red_flags.length <= 1,
+      a.confidence === "High" &&
+      summaryIncludes(a, "growing", "building", "deepening", "warm"),
   },
   {
     title: "Strong Compatibility",
     match: (a: AnalysisReport) =>
-      a.confidence === "High" && a.red_flags.length <= 1,
+      a.confidence === "High" &&
+      !summaryIncludes(a, "uncertain", "unclear", "one-sided"),
   },
   {
     title: "Emotional Distance",
-    match: (a: AnalysisReport) => a.red_flags.length >= 3,
+    match: (a: AnalysisReport) =>
+      summaryIncludes(a, "distance", "distant", "fading", "drift", "low investment"),
   },
   {
     title: "Unclear Intentions",
@@ -34,7 +36,8 @@ const THEMES = [
   {
     title: "Early Spark",
     match: (a: AnalysisReport) =>
-      a.confidence === "Medium" && a.green_flags.length >= 1,
+      a.confidence === "Medium" &&
+      summaryIncludes(a, "early", "spark", "warming", "young"),
   },
 ] as const;
 

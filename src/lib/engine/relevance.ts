@@ -39,6 +39,16 @@ function evaluateRule(
       if (!ans) return false;
       return String(ans.raw) === rule.value;
     }
+    case "answer_lte": {
+      const ans = answers.get(rule.question_id);
+      if (!ans || typeof ans.raw !== "number") return false;
+      return ans.raw <= rule.value;
+    }
+    case "answer_gte": {
+      const ans = answers.get(rule.question_id);
+      if (!ans || typeof ans.raw !== "number") return false;
+      return ans.raw >= rule.value;
+    }
     default:
       return false;
   }
@@ -64,6 +74,10 @@ export function isQuestionRelevant(
 
   if (rules.skip_if?.some((r) => evaluateRule(r, profile, map))) {
     return false;
+  }
+
+  if (rules.only_if_any?.length) {
+    return rules.only_if_any.some((r) => evaluateRule(r, profile, map));
   }
 
   if (rules.only_if?.length) {

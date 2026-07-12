@@ -50,11 +50,15 @@ export type FollowUpRule =
   | { type: "dimension_uncertain"; dimension: PsychologicalDimension; below: number }
   | { type: "dimension_gap"; high: PsychologicalDimension; low: PsychologicalDimension; gap: number }
   | { type: "answer_equals"; question_id: string; value: string }
+  | { type: "answer_lte"; question_id: string; value: number }
+  | { type: "answer_gte"; question_id: string; value: number }
   | { type: "dimension_above"; dimension: PsychologicalDimension; threshold: number };
 
 export interface FollowUpRules {
   skip_if?: FollowUpRule[];
   only_if?: FollowUpRule[];
+  /** Any matching rule is enough (OR). Used for follow-up triggers. */
+  only_if_any?: FollowUpRule[];
 }
 
 export interface QuestionScoring {
@@ -83,7 +87,11 @@ export interface Question {
   is_clarification?: boolean;
   is_starter?: boolean;
   is_active?: boolean;
+  /** Fixed foundation stage — always first, never adaptive. */
+  is_foundation?: boolean;
 }
+
+export type AssessmentPhase = "foundation" | "adaptive";
 
 export interface AnswerValue {
   /** single_select / multi_select / slider value(s) */
@@ -185,6 +193,7 @@ interface AnswerResponseCommon {
   assessmentSummary: AssessmentSummary;
   confidence: number;
   questionNumber: number;
+  phase: AssessmentPhase;
   scoreDeltas?: ScoreDelta;
 }
 

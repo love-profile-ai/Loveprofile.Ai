@@ -19,13 +19,13 @@ const fraunces = Fraunces({
 
 export const metadata: Metadata = {
   title: {
-    default: `Nila — ${SITE_TAGLINE}`,
-    template: `%s | Nila`,
+    default: `${SITE_NAME} — ${SITE_TAGLINE}`,
+    template: `%s | ${SITE_NAME}`,
   },
   description:
     "A guided, romantic AI relationship reflection — from first question to your personalized report.",
   openGraph: {
-    title: `Nila — ${SITE_TAGLINE}`,
+    title: `${SITE_NAME} — ${SITE_TAGLINE}`,
     description:
       "Enter a private relationship journal powered by AI. Understand the patterns beneath your feelings.",
     type: "website",

@@ -8,7 +8,6 @@ import {
   ConfidenceBarsDecor,
   ConfidenceMeter,
 } from "@/components/report/confidence-meter";
-import { FlagsList } from "@/components/report/section-card";
 import { FollowUpChat } from "@/components/report/follow-up-chat";
 import type { ReportRecord } from "@/types/report";
 import { normalizeReport } from "@/lib/ai/normalize-report";
@@ -16,7 +15,6 @@ import { getReportThemeTitle } from "@/lib/report-theme";
 import {
   Download,
   Eye,
-  Flag,
   Heart,
   Pencil,
   Plus,
@@ -28,7 +26,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const MAX_FLAGS = 4;
 const MAX_STEPS = 4;
 
 function trimList(items: string[], max: number) {
@@ -63,8 +60,6 @@ export function ReportDashboard({ report }: { report: ReportRecord }) {
   const [editing, setEditing] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
 
-  const greenFlags = trimList(analysis.green_flags, MAX_FLAGS);
-  const redFlags = trimList(analysis.red_flags, MAX_FLAGS);
   const nextSteps = trimList(analysis.gentle_next_steps, MAX_STEPS);
   const noticedText = analysis.what_we_noticed.join(" ");
 
@@ -218,51 +213,17 @@ export function ReportDashboard({ report }: { report: ReportRecord }) {
             <ConfidenceBarsDecor />
           </div>
 
-          {(greenFlags.shown.length > 0 || redFlags.shown.length > 0) && (
-            <div className="mt-10 grid gap-5 md:grid-cols-2">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-                className="glass-card overflow-hidden rounded-3xl p-6"
-              >
-                <SectionHeader
-                  icon={Flag}
-                  title="Green Flags"
-                  iconClass="bg-[#3B6D11]"
-                />
-                <div className="relative mt-4">
-                  <FlagsList flags={greenFlags.shown} type="green" />
-                  {greenFlags.extra > 0 && (
-                    <p className="mt-3 text-xs font-medium text-sage/70">
-                      +{greenFlags.extra} more
-                    </p>
-                  )}
-                </div>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-                className="glass-card overflow-hidden rounded-3xl p-6"
-              >
-                <SectionHeader
-                  icon={Flag}
-                  title="Red Flags"
-                  iconClass="bg-[#A32D2D]"
-                />
-                <div className="relative mt-4">
-                  <FlagsList flags={redFlags.shown} type="red" />
-                  {redFlags.extra > 0 && (
-                    <p className="mt-3 text-xs font-medium text-flag-red/70">
-                      +{redFlags.extra} more
-                    </p>
-                  )}
-                </div>
-              </motion.div>
+          {analysis.ai_summary && (
+            <div className="relative mt-10 overflow-hidden rounded-[1.5rem] border border-primary/14 bg-white/42 p-6 shadow-lg shadow-primary/6 backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.045]">
+              <div className="pointer-events-none absolute -bottom-10 -left-10 size-40 rounded-full bg-primary/10 blur-2xl" />
+              <SectionHeader
+                icon={Sparkles}
+                title="Your Reflection"
+                iconClass="bg-primary"
+              />
+              <p className="relative mt-4 text-base font-medium leading-8 text-foreground/78">
+                {analysis.ai_summary}
+              </p>
             </div>
           )}
 

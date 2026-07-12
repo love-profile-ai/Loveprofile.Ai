@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import {
   Bell,
   Brain,
   CheckCircle2,
+  Database,
   CircleSlash,
   ClipboardList,
   FileText,
@@ -388,6 +390,12 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
                   className="premium-input w-full rounded-full pl-11 sm:w-72"
                 />
               </div>
+              <Link href="/admin/database-health">
+                <Button variant="outline" size="sm">
+                  <Database className="mr-1 size-4" />
+                  DB Health
+                </Button>
+              </Link>
               <Button variant="outline" onClick={loadAll}>
                 Refresh
               </Button>

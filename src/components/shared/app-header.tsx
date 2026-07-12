@@ -1,19 +1,23 @@
 import Link from "next/link";
-import { LayoutDashboard } from "lucide-react";
+import { Heart, LayoutDashboard } from "lucide-react";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
-import { SITE_NAME } from "@/lib/site";
 
 export function AppHeader() {
   return (
     <header className="sticky top-4 z-30 mb-6 flex items-center justify-between floating-nav">
       <Link
         href="/"
-        className="flex items-center gap-2.5 font-display text-lg font-semibold tracking-tight text-foreground"
+        className="flex items-center gap-2.5 font-display text-lg font-semibold tracking-tight"
       >
-        <span className="grid size-9 place-items-center rounded-full border border-primary/20 bg-primary/12">
-          <span className="size-3 rounded-full bg-gradient-to-br from-primary via-lavender to-coral" />
+        <span className="grid size-9 place-items-center rounded-full border border-primary/30 bg-gradient-to-br from-primary/20 via-lavender/15 to-coral/15 shadow-sm shadow-primary/15 dark:border-primary/40 dark:from-primary/25 dark:via-lavender/20 dark:to-coral/15">
+          <Heart className="size-4 fill-primary/30 text-primary dark:fill-primary/40" />
         </span>
-        {SITE_NAME}
+        <span>
+          <span className="text-foreground">LoveProfile</span>{" "}
+          <span className="bg-gradient-to-r from-primary via-lavender to-coral bg-clip-text font-bold text-transparent">
+            AI
+          </span>
+        </span>
       </Link>
       <div className="flex items-center gap-3 sm:gap-4">
         <ThemeToggle />

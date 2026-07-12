@@ -7,7 +7,8 @@ import type {
   UserProfile,
 } from "@/types/adaptive-engine";
 import { evaluateRules } from "./rules";
-import { selectNextQuestion } from "./selectQuestion";
+import { resolveNextQuestion } from "./selectQuestionLlm";
+import { selectFirstQuestion } from "./selectQuestion";
 import { resolveFollowUp } from "./followUp";
 import { updateProfile } from "./updateProfile";
 
@@ -74,13 +75,15 @@ export async function processAnswer(
 
   const decision = evaluateRules(updatedProfile);
 
-  const next_question = selectNextQuestion({
+  const selection = await resolveNextQuestion({
     questions: extraQuestion ? [...allQuestions, extraQuestion] : allQuestions,
     profile: updatedProfile,
     answers: updatedAnswers,
     decision,
     clarification_parent_id: clarificationParentId,
   });
+
+  const next_question = selection.question;
 
   const finished = decision.should_end || next_question === null;
 
