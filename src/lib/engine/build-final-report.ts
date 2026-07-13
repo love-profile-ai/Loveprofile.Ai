@@ -12,7 +12,12 @@ import {
 } from "@/lib/ai/openai";
 import { finalizeAssessmentSummary } from "@/lib/engine/assessment-summary";
 import { generateStructuredReport, toAnalysisReport } from "@/lib/engine/generateReport";
-import { personalizationFallbackFromStructured } from "@/lib/engine/report-personalization-inputs";
+import {
+  findBestMatch,
+  hashAnswerSeed,
+  pickVariant,
+} from "@/lib/engine/result-template-matcher";
+import { reportFromTemplate } from "@/lib/engine/report-from-template";
 
 export interface BuildFinalReportInput {
   summary: AssessmentSummary;
@@ -37,6 +42,13 @@ export async function buildFinalReport({
   const hasSessionData = answers.length > 0;
 
   if (hasSessionData) {
+    // Match a result template before calling the AI so the archetype and
+    // tone are grounded in deterministic scoring, not invented per-call.
+    const seed = hashAnswerSeed(answers);
+    const template = findBestMatch({ profile, answers });
+    const summarySeed = pickVariant(template.summary_variants, seed, 0);
+    const lookingAheadSeed = pickVariant(template.looking_ahead_variants, seed, 1);
+
     try {
       const analysis = await generatePersonalizedReport({
         path: summary.path,
@@ -44,14 +56,24 @@ export async function buildFinalReport({
         answers,
         questions,
         structured,
+        templateGuidance: {
+          templateId: template.id,
+          title: template.title,
+          moodTag: template.mood_tag,
+          tone: template.tone,
+          summarySeed,
+          lookingAheadSeed,
+        },
       });
       return { analysis, structured, finalSummary };
     } catch (error) {
       console.error(
-        "Personalization layer failed, using structured fallback:",
+        "Personalization layer failed, using template fallback:",
         formatAnalysisError(error)
       );
-      const analysis = personalizationFallbackFromStructured(structured);
+      // Same seed => same picks, so this fallback is answer-unique too,
+      // and produces a complete, valid report with no AI involved.
+      const analysis = reportFromTemplate(template, seed, structured);
       return { analysis, structured, finalSummary };
     }
   }

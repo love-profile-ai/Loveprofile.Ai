@@ -8,6 +8,7 @@ import {
   buildPersonalizationLayerPrompt,
   buildReflectiveReportUserPrompt,
   buildSummaryReportUserPrompt,
+  type PersonalizationTemplateGuidance,
 } from "./prompts";
 import { createOpenRouterClient, OPENROUTER_MODEL } from "./openrouter";
 import {
@@ -110,6 +111,8 @@ export async function generatePersonalizedReport(input: {
   answers: SessionAnswerRecord[];
   questions: Question[];
   structured: StructuredReport;
+  /** Matched result-template guidance — steers archetype/tone instead of letting the AI invent it. */
+  templateGuidance?: PersonalizationTemplateGuidance;
 }): Promise<AnalysisReport> {
   if (!isPersonalizationEnabled()) {
     return personalizationFallbackFromStructured(input.structured);
@@ -125,8 +128,13 @@ export async function generatePersonalizedReport(input: {
   const client = createOpenRouterClient();
   const completion = await client.chat.completions.create({
     model: OPENROUTER_MODEL,
-    messages: [{ role: "user", content: buildPersonalizationLayerPrompt(layerInput) }],
-    temperature: 0.35,
+    messages: [
+      {
+        role: "user",
+        content: buildPersonalizationLayerPrompt(layerInput, input.templateGuidance),
+      },
+    ],
+    temperature: 0.5,
     max_tokens: 800,
     response_format: { type: "json_object" },
   });

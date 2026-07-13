@@ -306,6 +306,10 @@ sections, do not explain your reasoning, do not exceed the requested
 lengths.
 
 INPUT
+matched_template_title: {{template_title}}
+matched_template_tone: {{template_tone}}
+summary_seed: {{summary_seed}}
+looking_ahead_seed: {{looking_ahead_seed}}
 dimension_scores: {{dimension_scores_json}}
 lowest_dimension: {{lowest_dimension}}
 highest_dimension: {{highest_dimension}}
@@ -316,31 +320,37 @@ n_questions_answered: {{n}}
 answer_consistency: {{consistency_label}}
 
 TASKS
-1. archetype: 2-4 word phrase naming this relationship's current stage.
-   Must feel specific to the scores given, not generic. Examples of style
-   (do not reuse): "Cautious Warming", "Steady but Untested", "One-Sided
-   Spark". Avoid clinical words like "Analysis" or "Assessment".
+1. archetype: If matched_template_title is not "none", use it exactly or
+   a 2-4 word phrase clearly in its same spirit. If it is "none", invent
+   a 2-4 word phrase naming this relationship's current stage. Must feel
+   specific to the scores given, not generic. Avoid clinical words like
+   "Analysis" or "Assessment".
 
 2. opener_line: ONE sentence, under 20 words, reflecting back
    most_distinctive_answer naturally and warmly. Do not quote it verbatim
    — paraphrase in your own words. No therapy-speak.
 
 3. tone_class: ONE word only, from: terse, reflective, anxious, calm,
-   guarded, open. Base this strictly on sample_answers_for_tone.
+   guarded, open. Base this strictly on sample_answers_for_tone. If
+   matched_template_tone is not "none", let it inform tone_class without
+   overriding what sample_answers_for_tone actually shows.
 
 4. ai_summary: 3-5 sentences weaving the user's notable_answers into one
-   warm, cohesive reflection. Paraphrase their answers — do not quote
-   verbatim. No bullet lists, no green/red framing. Ground every sentence
-   in something they actually said.
+   warm, cohesive reflection. If summary_seed is not "none", expand and
+   personalize it using the user's specific notable_answers — build on
+   its meaning, do not contradict or discard it. Paraphrase their
+   answers — do not quote verbatim. No bullet lists, no green/red
+   framing. Ground every sentence in something they actually said.
 
 5. next_step: ONE specific journaling question (not generic advice) the
    user could sit with this week, targeted at lowest_dimension and
    grounded in why that dimension is unresolved. Under 25 words.
 
-6. looking_ahead: ONE sentence. Tone shifts with n_questions_answered and
-   answer_consistency — more certain and grounded at high confidence,
-   more patient and open-ended at low confidence. Never reuse "Stay
-   patient with ambiguity" verbatim.
+6. looking_ahead: ONE sentence. If looking_ahead_seed is not "none",
+   write in its same spirit and message rather than a different one.
+   Tone shifts with n_questions_answered and answer_consistency — more
+   certain and grounded at high confidence, more patient and open-ended
+   at low confidence. Never reuse "Stay patient with ambiguity" verbatim.
 
 OUTPUT — JSON only, no other text:
 {
@@ -352,13 +362,34 @@ OUTPUT — JSON only, no other text:
   "looking_ahead": "..."
 }`;
 
+/** Result-template guidance passed to the AI so it builds on — rather than invents — the archetype. */
+export interface PersonalizationTemplateGuidance {
+  templateId: string;
+  title: string;
+  moodTag?: string;
+  tone: string;
+  summarySeed: string;
+  lookingAheadSeed: string;
+}
+
 export function buildPersonalizationLayerPrompt(
-  input: PersonalizationLayerInput
+  input: PersonalizationLayerInput,
+  templateGuidance?: PersonalizationTemplateGuidance
 ): string {
   return PERSONALIZATION_LAYER_PROMPT.replace(
-    "{{dimension_scores_json}}",
-    JSON.stringify(input.dimension_scores, null, 2)
+    "{{template_title}}",
+    templateGuidance?.title ?? "none"
   )
+    .replace("{{template_tone}}", templateGuidance?.tone ?? "none")
+    .replace("{{summary_seed}}", templateGuidance?.summarySeed ?? "none")
+    .replace(
+      "{{looking_ahead_seed}}",
+      templateGuidance?.lookingAheadSeed ?? "none"
+    )
+    .replace(
+      "{{dimension_scores_json}}",
+      JSON.stringify(input.dimension_scores, null, 2)
+    )
     .replace("{{lowest_dimension}}", input.lowest_dimension)
     .replace("{{highest_dimension}}", input.highest_dimension)
     .replace(
