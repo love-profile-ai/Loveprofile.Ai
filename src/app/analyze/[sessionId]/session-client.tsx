@@ -63,7 +63,7 @@ export default function SessionPageClient({
 
   return (
     <DisclaimerGuard>
-      <PageShell className="pb-16 pt-2">
+      <PageShell className="pb-16 pt-2" dotGrid={false}>
         <AppHeader />
         <main className="py-6 sm:py-10">
           <Link

@@ -7,6 +7,8 @@ import * as THREE from "three";
 import { SmoothHeart3D } from "@/components/marketing/smooth-heart-3d";
 import { ORB_THEME, type OrbTheme } from "@/components/marketing/orb-theme";
 
+export type NilaOrbVariant = "orb" | "heart";
+
 function OrbCore({ theme }: { theme: OrbTheme }) {
   const groupRef = useRef<THREE.Group>(null);
   const palette = ORB_THEME[theme];
@@ -56,6 +58,25 @@ function OrbCore({ theme }: { theme: OrbTheme }) {
   );
 }
 
+function HeartCore({ theme }: { theme: OrbTheme }) {
+  const groupRef = useRef<THREE.Group>(null);
+
+  useFrame((state) => {
+    if (!groupRef.current) return;
+    const t = state.clock.elapsedTime;
+    groupRef.current.rotation.y = t * 0.12;
+    groupRef.current.rotation.x = Math.sin(t * 0.05) * 0.04;
+  });
+
+  return (
+    <Float speed={0.75} rotationIntensity={0.06} floatIntensity={0.22}>
+      <group ref={groupRef} scale={1.45}>
+        <SmoothHeart3D theme={theme} vivid />
+      </group>
+    </Float>
+  );
+}
+
 function Ribbon({ offset, color }: { offset: number; color: string }) {
   const ref = useRef<THREE.Mesh>(null);
   const curve = useMemo(() => {
@@ -99,7 +120,7 @@ function Ribbon({ offset, color }: { offset: number; color: string }) {
   );
 }
 
-function Scene({ theme }: { theme: OrbTheme }) {
+function OrbScene({ theme }: { theme: OrbTheme }) {
   const palette = ORB_THEME[theme];
   const { ambient, key, fill, rim, accent } = palette.lights;
 
@@ -127,23 +148,46 @@ function Scene({ theme }: { theme: OrbTheme }) {
   );
 }
 
+function HeartScene({ theme }: { theme: OrbTheme }) {
+  const palette = ORB_THEME[theme];
+  const { rose, coral, lavender, gold } = palette.heart.colors;
+
+  return (
+    <>
+      <ambientLight intensity={0.28} color="#1a1028" />
+      <pointLight position={[2.2, 0.8, 3.2]} intensity={1.35} color={rose} distance={14} />
+      <pointLight position={[-2.4, 0.2, 2.8]} intensity={1.05} color={lavender} distance={14} />
+      <pointLight position={[0.4, -1.8, 2.4]} intensity={0.85} color={coral} distance={12} />
+      <pointLight position={[-0.6, 2.2, 1.8]} intensity={0.65} color={gold} distance={12} />
+      <directionalLight position={[1, 2, 4]} intensity={0.45} color="#FFE8F0" />
+      <HeartCore theme={theme} />
+    </>
+  );
+}
+
 interface NilaOrbCanvasProps {
   theme: OrbTheme;
   width: number;
   height: number;
+  variant?: NilaOrbVariant;
 }
 
-export default function NilaOrbCanvas({ theme, width, height }: NilaOrbCanvasProps) {
+export default function NilaOrbCanvas({
+  theme,
+  width,
+  height,
+  variant = "orb",
+}: NilaOrbCanvasProps) {
   return (
     <Canvas
       className="touch-none"
-      camera={{ position: [0, 0, 4.2], fov: 42 }}
+      camera={{ position: [0, 0, variant === "heart" ? 3.6 : 4.2], fov: variant === "heart" ? 38 : 42 }}
       dpr={[1, 1.5]}
       gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
       style={{ width, height, background: "transparent" }}
       resize={{ scroll: false, debounce: { scroll: 0, resize: 0 } }}
     >
-      <Scene theme={theme} />
+      {variant === "heart" ? <HeartScene theme={theme} /> : <OrbScene theme={theme} />}
     </Canvas>
   );
 }

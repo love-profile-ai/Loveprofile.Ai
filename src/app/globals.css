@@ -458,6 +458,26 @@
 
 
 
+  .orb-heart-blend {
+
+    overflow: visible;
+
+    -webkit-mask-image: radial-gradient(ellipse 72% 72% at 50% 48%, #000 42%, transparent 80%);
+
+    mask-image: radial-gradient(ellipse 72% 72% at 50% 48%, #000 42%, transparent 80%);
+
+  }
+
+
+
+  .orb-heart-blend canvas {
+
+    background: transparent !important;
+
+  }
+
+
+
   .landing-canvas {
 
     @apply relative min-h-screen overflow-hidden;

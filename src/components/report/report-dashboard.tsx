@@ -190,23 +190,12 @@ export function ReportDashboard({ report }: { report: ReportRecord }) {
               <p className="mt-5 text-base font-medium leading-8 text-foreground/70 sm:text-lg">
                 {analysis.summary}
               </p>
-              <div className="mt-8 grid gap-4 sm:grid-cols-2">
+              <div className="mt-8 max-w-sm">
                 <div className="rounded-[1.5rem] border border-primary/12 bg-white/45 p-5 backdrop-blur-xl dark:bg-white/[0.045]">
                   <p className="text-label">Confidence</p>
                   <div className="mt-4">
                     <ConfidenceMeter confidence={analysis.confidence} variant="ring" />
                   </div>
-                </div>
-                <div className="rounded-[1.5rem] border border-gold/18 bg-gold/8 p-5 backdrop-blur-xl">
-                  <p className="text-label">Compatibility radar</p>
-                  <div className="relative mx-auto mt-5 grid size-40 place-items-center rounded-full border border-primary/12 bg-[radial-gradient(circle,var(--background)_0_32%,transparent_33%),conic-gradient(from_180deg,var(--primary),var(--coral),var(--gold),var(--primary))] p-5 opacity-90">
-                    <div className="size-24 rounded-full border border-white/60 bg-white/70 shadow-inner backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.08]" />
-                    <div className="absolute inset-7 rounded-full border border-white/50 dark:border-white/10" />
-                    <div className="absolute inset-12 rounded-full border border-white/40 dark:border-white/10" />
-                  </div>
-                  <p className="mt-4 text-center text-xs font-bold uppercase tracking-[0.18em] text-foreground/48">
-                    Signals mapped
-                  </p>
                 </div>
               </div>
             </div>

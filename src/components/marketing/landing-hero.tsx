@@ -130,7 +130,7 @@ export function LandingHero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
-            className="relative z-10 max-w-xl rounded-[2rem] border border-primary/15 bg-gradient-to-br from-white/70 via-blush-wash/40 to-lavender-mist/30 p-8 shadow-xl shadow-primary/10 backdrop-blur-xl dark:border-primary/25 dark:bg-gradient-to-br dark:from-white/[0.09] dark:via-primary/10 dark:to-lavender/10 dark:shadow-black/30 sm:p-10"
+            className="relative z-10 max-w-xl"
           >
             <p className="text-label">Your private relationship journal</p>
             <h1 className="text-display mt-5">

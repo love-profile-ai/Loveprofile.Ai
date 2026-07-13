@@ -29,7 +29,11 @@ function createHeartGeometry() {
   return geometry;
 }
 
-function paintHeartGradient(geometry: THREE.ExtrudeGeometry, theme: OrbTheme) {
+function paintHeartGradient(
+  geometry: THREE.ExtrudeGeometry,
+  theme: OrbTheme,
+  vivid = false
+) {
   const { rose, coral, lavender, blush, gold } = ORB_THEME[theme].heart.colors;
   const cRose = new THREE.Color(rose);
   const cCoral = new THREE.Color(coral);
@@ -58,8 +62,9 @@ function paintHeartGradient(geometry: THREE.ExtrudeGeometry, theme: OrbTheme) {
       tmp.lerpColors(cLavender, cBlush, (height - 0.68) / 0.32);
     }
 
-    if (side > 0.55) tmp.lerp(cRose, 0.22);
-    if (depth > 0.65) tmp.lerp(cGold, 0.12);
+    if (side > 0.55) tmp.lerp(cRose, vivid ? 0.32 : 0.22);
+    if (depth > 0.65) tmp.lerp(cGold, vivid ? 0.22 : 0.12);
+    if (vivid && height > 0.5) tmp.lerp(cLavender, 0.08);
 
     colors[i * 3] = tmp.r;
     colors[i * 3 + 1] = tmp.g;
@@ -71,10 +76,11 @@ function paintHeartGradient(geometry: THREE.ExtrudeGeometry, theme: OrbTheme) {
 
 interface SmoothHeart3DProps {
   theme: OrbTheme;
+  vivid?: boolean;
 }
 
 /** Vivid gradient 3D heart with romantic pulse */
-export function SmoothHeart3D({ theme }: SmoothHeart3DProps) {
+export function SmoothHeart3D({ theme, vivid = false }: SmoothHeart3DProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const glowRefs = useRef<(THREE.Mesh | null)[]>([]);
   const materialRef = useRef<THREE.MeshPhysicalMaterial>(null);
@@ -83,9 +89,9 @@ export function SmoothHeart3D({ theme }: SmoothHeart3DProps) {
 
   const geometry = useMemo(() => {
     const geo = createHeartGeometry();
-    paintHeartGradient(geo, theme);
+    paintHeartGradient(geo, theme, vivid);
     return geo;
-  }, [theme]);
+  }, [theme, vivid]);
 
   const baseScale = palette.heart.scale;
 
@@ -114,7 +120,8 @@ export function SmoothHeart3D({ theme }: SmoothHeart3DProps) {
 
       if (materialRef.current) {
         const pulse = 0.85 + 0.15 * Math.sin(t * 1.6);
-        materialRef.current.emissiveIntensity = palette.heart.emissiveIntensity * pulse;
+        materialRef.current.emissiveIntensity =
+          palette.heart.emissiveIntensity * (vivid ? 1.35 : 1) * pulse;
         materialRef.current.clearcoat = 0.9 + 0.08 * Math.sin(t * 0.9);
       }
     } else {
@@ -142,7 +149,7 @@ export function SmoothHeart3D({ theme }: SmoothHeart3DProps) {
           <meshBasicMaterial
             color={glowColor}
             transparent
-            opacity={palette.heart.glowOpacity * (0.55 - i * 0.12)}
+            opacity={palette.heart.glowOpacity * (vivid ? 0.68 : 0.55 - i * 0.12)}
             depthWrite={false}
             blending={THREE.AdditiveBlending}
           />
@@ -153,15 +160,15 @@ export function SmoothHeart3D({ theme }: SmoothHeart3DProps) {
           ref={materialRef}
           vertexColors
           emissive={palette.heart.emissive}
-          emissiveIntensity={palette.heart.emissiveIntensity}
-          roughness={0.18}
+          emissiveIntensity={palette.heart.emissiveIntensity * (vivid ? 1.2 : 1)}
+          roughness={vivid ? 0.14 : 0.18}
           metalness={0.12}
           clearcoat={0.95}
           clearcoatRoughness={0.1}
           reflectivity={0.65}
-          iridescence={0.35}
-          iridescenceIOR={1.3}
-          iridescenceThicknessRange={[100, 400]}
+          iridescence={vivid ? 0.62 : 0.35}
+          iridescenceIOR={1.35}
+          iridescenceThicknessRange={vivid ? [180, 520] : [100, 400]}
         />
       </mesh>
     </group>

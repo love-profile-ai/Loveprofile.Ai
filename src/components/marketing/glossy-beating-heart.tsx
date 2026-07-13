@@ -7,11 +7,13 @@ import { cn } from "@/lib/utils";
 interface GlossyBeatingHeartProps {
   className?: string;
   size?: number;
+  vivid?: boolean;
 }
 
 export function GlossyBeatingHeart({
   className,
   size = 140,
+  vivid = false,
 }: GlossyBeatingHeartProps) {
   const uid = useId().replace(/:/g, "");
   const reduced = useReducedMotion();
@@ -32,15 +34,29 @@ export function GlossyBeatingHeart({
         className="overflow-visible drop-shadow-[0_0_28px_rgba(255,79,139,0.45)]"
       >
         <defs>
-          <radialGradient id={heartGradId} cx="35%" cy="30%" r="75%">
-            <stop offset="0%" stopColor="#ff9ec7" />
-            <stop offset="35%" stopColor="#ff4f8b" />
-            <stop offset="70%" stopColor="#e21e63" />
-            <stop offset="100%" stopColor="#a1114a" />
-          </radialGradient>
+          <linearGradient id={heartGradId} x1="0%" y1="0%" x2="100%" y2="100%">
+            {vivid ? (
+              <>
+                <stop offset="0%" stopColor="#FF9EC7" />
+                <stop offset="22%" stopColor="#FF4F8B" />
+                <stop offset="48%" stopColor="#E8785A" />
+                <stop offset="68%" stopColor="#9B87C8" />
+                <stop offset="88%" stopColor="#D4A84A" />
+                <stop offset="100%" stopColor="#C21E63" />
+              </>
+            ) : (
+              <>
+                <stop offset="0%" stopColor="#ff9ec7" />
+                <stop offset="35%" stopColor="#ff4f8b" />
+                <stop offset="70%" stopColor="#e21e63" />
+                <stop offset="100%" stopColor="#a1114a" />
+              </>
+            )}
+          </linearGradient>
           <radialGradient id={glowId} cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#ff5b95" stopOpacity="0.55" />
-            <stop offset="100%" stopColor="#ff5b95" stopOpacity="0" />
+            <stop offset="0%" stopColor={vivid ? "#C9A0E8" : "#ff5b95"} stopOpacity="0.55" />
+            <stop offset="55%" stopColor={vivid ? "#FF6B9D" : "#ff5b95"} stopOpacity="0.22" />
+            <stop offset="100%" stopColor={vivid ? "#E8785A" : "#ff5b95"} stopOpacity="0" />
           </radialGradient>
           <filter id={softId} x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="3" />
@@ -54,7 +70,7 @@ export function GlossyBeatingHeart({
           <path
             d="M100,175 C40,130 10,95 10,60 C10,30 32,10 58,10 C78,10 92,22 100,38 C108,22 122,10 142,10 C168,10 190,30 190,60 C190,95 160,130 100,175 Z"
             fill={`url(#${heartGradId})`}
-            stroke="#7a0d38"
+            stroke={vivid ? "#7a2d58" : "#7a0d38"}
             strokeWidth="1"
           />
           <path

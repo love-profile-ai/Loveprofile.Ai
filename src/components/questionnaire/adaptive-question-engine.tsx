@@ -18,7 +18,12 @@ import { ChevronLeft, Loader2 } from "lucide-react";
 
 const NilaOrb = dynamic(
   () => import("@/components/marketing/nila-orb").then((m) => m.NilaOrb),
-  { ssr: false, loading: () => <div className="size-32 rounded-full bg-primary/10 animate-pulse-soft" /> }
+  {
+    ssr: false,
+    loading: () => (
+      <div className="mx-auto h-[min(72vw,420px)] w-full max-w-lg bg-transparent sm:h-[min(68vw,480px)]" />
+    ),
+  }
 );
 
 const INSIGHT_MESSAGES = [
@@ -64,9 +69,9 @@ function GeneratingReportScreen({
   }, [reduced]);
 
   return (
-    <div className="flex flex-col items-center justify-center py-24 text-center sm:py-32">
-      <div className="relative size-48 sm:size-56">
-        <NilaOrb className="absolute inset-0 h-full w-full" />
+    <div className="flex flex-col items-center justify-center py-16 text-center sm:py-24">
+      <div className="relative mx-auto h-[min(72vw,420px)] w-full max-w-2xl overflow-visible sm:h-[min(68vw,480px)]">
+        <NilaOrb variant="heart" className="absolute inset-0 h-full w-full" />
       </div>
 
       <p className="text-label mt-10">Anticipation</p>
