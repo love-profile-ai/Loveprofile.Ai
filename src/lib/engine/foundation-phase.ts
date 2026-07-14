@@ -11,6 +11,7 @@ import type {
 import { updateProfile } from "./updateProfile";
 import { evaluateRules } from "./rules";
 import { resolveNextQuestion } from "./selectQuestionLlm";
+import { getSeedQuestionsForPath } from "./seed-questions";
 import {
   FOUNDATION_QUESTION_COUNT,
   getFoundationQuestionById,
@@ -18,6 +19,41 @@ import {
   getFirstFoundationQuestion,
   isFoundationQuestionId,
 } from "./foundation-questions";
+
+function mergeQuestionsById(...pools: Question[][]): Question[] {
+  const byId = new Map<string, Question>();
+  for (const pool of pools) {
+    for (const question of pool) {
+      byId.set(question.id, question);
+    }
+  }
+  return [...byId.values()];
+}
+
+/** DB rows + bundled seed/content so clarifications and follow-ups always resolve. */
+export function getSessionQuestionBank(
+  path: EnginePath,
+  adaptiveQuestions: Question[]
+): Question[] {
+  return mergeQuestionsById(getSeedQuestionsForPath(path), adaptiveQuestions);
+}
+
+function isValidClientQuestion(
+  candidate: unknown,
+  path: EnginePath,
+  questionId: string
+): candidate is Question {
+  if (!candidate || typeof candidate !== "object") return false;
+  const q = candidate as Question;
+  return (
+    q.id === questionId &&
+    q.path === path &&
+    typeof q.question_text === "string" &&
+    (q.type === "single_select" ||
+      q.type === "slider" ||
+      q.type === "multi_select")
+  );
+}
 
 export interface FoundationStepResult {
   profile: UserProfile;
@@ -115,12 +151,22 @@ export function processFoundationAnswer(input: {
 export function resolveQuestionForSession(
   path: EnginePath,
   questionId: string,
-  adaptiveQuestions: Question[]
+  adaptiveQuestions: Question[],
+  clientQuestion?: unknown
 ): Question | null {
   if (isFoundationQuestionId(questionId)) {
     return getFoundationQuestionById(path, questionId);
   }
-  return adaptiveQuestions.find((q) => q.id === questionId) ?? null;
+
+  const bank = getSessionQuestionBank(path, adaptiveQuestions);
+  const fromBank = bank.find((q) => q.id === questionId);
+  if (fromBank) return fromBank;
+
+  if (isValidClientQuestion(clientQuestion, path, questionId)) {
+    return clientQuestion;
+  }
+
+  return null;
 }
 
 export async function getAdaptiveQuestionAfterFoundation(input: {

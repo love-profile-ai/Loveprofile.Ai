@@ -44,10 +44,8 @@ interface AdaptiveQuestionEngineProps {
 }
 
 function GeneratingReportScreen({
-  confidence,
   dimensionCoverage,
 }: {
-  confidence: number;
   dimensionCoverage: number;
 }) {
   const reduced = useReducedMotion();
@@ -101,7 +99,7 @@ function GeneratingReportScreen({
           />
         </div>
         <p className="mt-3 text-xs font-semibold text-foreground/42">
-          {Math.round(confidence)}% confidence · {dimensionCoverage} dimensions mapped
+          {dimensionCoverage} dimensions mapped
         </p>
         <p className="mt-1 text-xs font-medium text-foreground/38">
           Usually under a minute
@@ -120,6 +118,7 @@ export function AdaptiveQuestionEngine({
   initialSummary,
 }: AdaptiveQuestionEngineProps) {
   const router = useRouter();
+  const reduced = useReducedMotion();
   const [currentValue, setCurrentValue] = useState<
     string | number | string[] | undefined
   >();
@@ -129,7 +128,6 @@ export function AdaptiveQuestionEngine({
     submitAnswer,
     currentQuestion,
     profile,
-    confidence,
     questionNumber,
     status,
     error,
@@ -163,7 +161,6 @@ export function AdaptiveQuestionEngine({
   if (status === "generating-report" || status === "done") {
     return (
       <GeneratingReportScreen
-        confidence={confidence}
         dimensionCoverage={Object.keys(profile.dimension_certainty).length}
       />
     );
@@ -178,7 +175,6 @@ export function AdaptiveQuestionEngine({
     <div className="mx-auto mt-6 max-w-2xl px-1 sm:mt-10">
       <AdaptiveProgressBar
         questionNumber={questionNumber}
-        confidence={confidence}
         dimensionCoverage={Object.keys(profile.dimension_certainty).length}
         phase={phase}
       />
@@ -186,10 +182,10 @@ export function AdaptiveQuestionEngine({
       <AnimatePresence mode="wait">
         <motion.div
           key={currentQuestion.id}
-          initial={{ opacity: 0, y: 20 }}
+          initial={reduced ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -16 }}
-          transition={{ duration: 0.38, ease: "easeOut" }}
+          exit={reduced ? undefined : { opacity: 0, y: -8 }}
+          transition={{ duration: reduced ? 0 : 0.12, ease: "easeOut" }}
           className="mt-10"
         >
           <p className="text-label">

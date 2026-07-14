@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { resolve } from "path";
-import pg from "pg";
 import { createAdminClient, hasAdminCredentials } from "@/lib/supabase/admin";
+import { connectPg } from "@/lib/supabase/pg-connection";
 import { createClient } from "@/lib/supabase/server";
 import type { EnginePath } from "@/types/adaptive-engine";
 import {
@@ -20,6 +20,8 @@ const MIGRATION_FILES = [
   "004_assessment_summary.sql",
   "005_expanded_adaptive_question_bank.sql",
   "006_repair_assessment_profiles.sql",
+  "007_ensure_questions_table.sql",
+  "008_foundation_answers_fk.sql",
 ];
 
 export interface HealthCheck {
@@ -46,6 +48,36 @@ export interface DatabaseHealthReport {
   };
   repairs: string[];
   problems: string[];
+}
+
+async function loadEnvFromLocal(): Promise<Record<string, string>> {
+  const envPath = resolve(process.cwd(), ".env.local");
+  const env: Record<string, string> = {};
+  try {
+    const raw = readFileSync(envPath, "utf8");
+    for (const line of raw.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const idx = trimmed.indexOf("=");
+      if (idx === -1) continue;
+      env[trimmed.slice(0, idx)] = trimmed.slice(idx + 1);
+    }
+  } catch {
+    // ignore
+  }
+  return env;
+}
+
+async function connectPgFromEnv() {
+  const env = await loadEnvFromLocal();
+  return connectPg({
+    DATABASE_URL: env.DATABASE_URL || env.SUPABASE_DB_URL,
+    SUPABASE_DB_URL: env.SUPABASE_DB_URL,
+    SUPABASE_DB_PASSWORD: env.SUPABASE_DB_PASSWORD,
+    SUPABASE_DB_HOST: env.SUPABASE_DB_HOST,
+    SUPABASE_DB_PORT: env.SUPABASE_DB_PORT,
+    NEXT_PUBLIC_SUPABASE_URL: env.NEXT_PUBLIC_SUPABASE_URL,
+  });
 }
 
 async function probeColumn(table: string, column: string): Promise<boolean> {
@@ -168,6 +200,35 @@ export async function runDatabaseHealthAudit(): Promise<DatabaseHealthReport> {
         const friendship = await probeColumn("assessment_profiles", "friendship_score");
         const summary = await probeColumn("assessment_profiles", "assessment_summary");
         return friendship && summary;
+      },
+    },
+    {
+      file: "007_ensure_questions_table.sql",
+      label: "Migration 007 — questions table repair",
+      probe: async () => {
+        const { error } = await admin.from("questions").select("id").limit(1);
+        return !error;
+      },
+    },
+    {
+      file: "008_foundation_answers_fk.sql",
+      label: "Migration 008 — foundation answer FK removed",
+      probe: async () => {
+        const { client, error: connectError } = await connectPgFromEnv();
+        if (!client) return false;
+        try {
+          const { rows } = await client.query(`
+            select 1
+            from pg_constraint
+            where conname = 'assessment_answers_question_id_fkey'
+              and conrelid = 'public.assessment_answers'::regclass
+          `);
+          return rows.length === 0;
+        } catch {
+          return false;
+        } finally {
+          await client.end().catch(() => {});
+        }
       },
     },
   ];
@@ -341,6 +402,14 @@ export async function repairDatabaseHealth(): Promise<{
   }
   if (migrationResult.error) {
     actions.push(`Migration runner: ${migrationResult.error}`);
+    if (
+      migrationResult.error.includes("password authentication failed") ||
+      migrationResult.error.includes("Could not connect")
+    ) {
+      actions.push(
+        "Manual fix: open Supabase → SQL Editor, run supabase/APPLY_MISSING.sql, then click Run repair again"
+      );
+    }
   }
 
   const report = await runDatabaseHealthAudit();
@@ -354,42 +423,26 @@ async function tryRunMigrations(): Promise<{
 }> {
   const envPath = resolve(process.cwd(), ".env.local");
   let env: Record<string, string> = {};
-  try {
-    const raw = readFileSync(envPath, "utf8");
-    for (const line of raw.split("\n")) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith("#")) continue;
-      const idx = trimmed.indexOf("=");
-      if (idx === -1) continue;
-      env[trimmed.slice(0, idx)] = trimmed.slice(idx + 1);
-    }
-  } catch {
-    return { applied: [], error: ".env.local not readable for migration runner" };
-  }
+  env = await loadEnvFromLocal();
 
   const databaseUrl = env.DATABASE_URL || env.SUPABASE_DB_URL;
-  const projectRef = env.NEXT_PUBLIC_SUPABASE_URL
-    ? new URL(env.NEXT_PUBLIC_SUPABASE_URL).hostname.split(".")[0]
-    : null;
   const password = env.SUPABASE_DB_PASSWORD?.trim();
 
-  const client = databaseUrl
-    ? new pg.Client({ connectionString: databaseUrl, ssl: { rejectUnauthorized: false } })
-    : password && projectRef
-      ? new pg.Client({
-          user: `postgres.${projectRef}`,
-          password,
-          host: env.SUPABASE_DB_HOST || "aws-1-ap-south-1.pooler.supabase.com",
-          port: Number(env.SUPABASE_DB_PORT || 5432),
-          database: "postgres",
-          ssl: { rejectUnauthorized: false },
-        })
-      : null;
+  const { client, error: connectError } = await connectPg({
+    DATABASE_URL: databaseUrl,
+    SUPABASE_DB_URL: env.SUPABASE_DB_URL,
+    SUPABASE_DB_PASSWORD: password,
+    SUPABASE_DB_HOST: env.SUPABASE_DB_HOST,
+    SUPABASE_DB_PORT: env.SUPABASE_DB_PORT,
+    NEXT_PUBLIC_SUPABASE_URL: env.NEXT_PUBLIC_SUPABASE_URL,
+  });
 
   if (!client) {
     return {
       applied: [],
-      error: "No DATABASE_URL or SUPABASE_DB_PASSWORD — run npm run db:setup manually",
+      error:
+        connectError ??
+        "No DATABASE_URL or SUPABASE_DB_PASSWORD — run npm run db:setup manually",
     };
   }
 
@@ -397,7 +450,6 @@ async function tryRunMigrations(): Promise<{
   const applied: string[] = [];
 
   try {
-    await client.connect();
     for (const file of MIGRATION_FILES) {
       const fullPath = resolve(migrationsDir, file);
       try {

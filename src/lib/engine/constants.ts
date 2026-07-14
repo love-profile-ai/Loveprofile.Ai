@@ -1,7 +1,7 @@
 export const CONFIDENCE_END_THRESHOLD = 90;
 export const CONFIDENCE_CLARIFY_THRESHOLD = 75;
 export const MIN_QUESTIONS_BEFORE_EARLY_END = 18;
-export const MAX_QUESTIONS = 30;
+export const MAX_QUESTIONS = 18;
 
 /** Score ceiling per dimension (0–100 scale). */
 export const SCORE_CEILING = 100;

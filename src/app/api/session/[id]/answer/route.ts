@@ -44,6 +44,8 @@ import {
 
   resolveQuestionForSession,
 
+  getSessionQuestionBank,
+
 } from "@/lib/engine/foundation-phase";
 
 
@@ -155,15 +157,13 @@ export async function POST(
 
 
   const adaptiveQuestions = await loadQuestions(session.path);
+  const questionBank = getSessionQuestionBank(session.path, adaptiveQuestions);
 
   const question = resolveQuestionForSession(
-
     session.path,
-
     questionId,
-
-    adaptiveQuestions
-
+    adaptiveQuestions,
+    body.question
   );
 
 
@@ -299,9 +299,17 @@ export async function POST(
 
 
     if (answerError) {
-
-      return NextResponse.json({ error: "Failed to save answer" }, { status: 500 });
-
+      console.error("Failed to insert assessment answer:", answerError);
+      return NextResponse.json(
+        {
+          error: "Failed to save answer",
+          detail:
+            process.env.NODE_ENV === "development"
+              ? answerError.message
+              : undefined,
+        },
+        { status: 500 }
+      );
     }
 
 
@@ -384,7 +392,7 @@ export async function POST(
 
     const selection = await resolveNextQuestion({
 
-      questions: adaptiveQuestions,
+      questions: questionBank,
 
       profile: foundationResult.profile,
 
@@ -516,7 +524,7 @@ export async function POST(
 
     answers,
 
-    questions: adaptiveQuestions,
+    questions: questionBank,
 
   });
 
@@ -557,9 +565,17 @@ export async function POST(
 
 
   if (answerError) {
-
-    return NextResponse.json({ error: "Failed to save answer" }, { status: 500 });
-
+    console.error("Failed to insert assessment answer:", answerError);
+    return NextResponse.json(
+      {
+        error: "Failed to save answer",
+        detail:
+          process.env.NODE_ENV === "development"
+            ? answerError.message
+            : undefined,
+      },
+      { status: 500 }
+    );
   }
 
 

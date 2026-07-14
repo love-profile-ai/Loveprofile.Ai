@@ -199,12 +199,25 @@ export const useAdaptiveSession = create<AdaptiveSessionState>((set, get) => ({
           body: JSON.stringify({
             question_id: currentQuestion.id,
             value: rawValue,
+            question: currentQuestion,
           }),
         });
 
-        const data = await res.json();
+        const contentType = res.headers.get("content-type") ?? "";
+        const data = contentType.includes("application/json")
+          ? await res.json()
+          : null;
+        if (!data) {
+          throw new Error(
+            res.ok
+              ? "Server returned an invalid response"
+              : `Server error (${res.status}). Refresh the page and try again.`
+          );
+        }
         if (!res.ok) {
-          throw new Error(data.error ?? "Failed to submit answer");
+          throw new Error(
+            data.detail ? `${data.error}: ${data.detail}` : (data.error ?? "Failed to submit answer")
+          );
         }
 
         const newAnswer: SessionAnswerRecord = {

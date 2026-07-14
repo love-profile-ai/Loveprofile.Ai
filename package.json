@@ -11,6 +11,7 @@
     "start": "next start",
     "lint": "eslint",
     "db:setup": "node scripts/setup-database.mjs",
+    "db:generate-missing": "node scripts/generate-apply-missing.mjs",
     "db:promote-admin": "node scripts/promote-admin.mjs"
   },
   "dependencies": {

@@ -100,5 +100,9 @@ export async function resolveFollowUp(
   );
   if (fromBank) return fromBank;
 
+  if (process.env.ENABLE_LLM_QUESTION_SELECTOR !== "true") {
+    return null;
+  }
+
   return generateClarificationQuestion(parentQuestion, answerValue, pathLabel);
 }

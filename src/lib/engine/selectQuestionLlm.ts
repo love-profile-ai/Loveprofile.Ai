@@ -39,10 +39,7 @@ interface LlmSelectionPayload {
 }
 
 function isLlmSelectorEnabled(): boolean {
-  return (
-    process.env.ENABLE_LLM_QUESTION_SELECTOR !== "false" &&
-    Boolean(process.env.OPENROUTER_API_KEY)
-  );
+  return process.env.ENABLE_LLM_QUESTION_SELECTOR === "true";
 }
 
 function formatAnswerValue(raw: SessionAnswerRecord["value"]["raw"]): string {

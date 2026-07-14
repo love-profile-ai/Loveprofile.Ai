@@ -230,6 +230,7 @@ function contentItemToQuestion(
     parent_question_id: item.depends_on
       ? engineId(path, item.depends_on)
       : null,
+    is_clarification: Boolean(item.depends_on),
     is_active: true,
   };
 

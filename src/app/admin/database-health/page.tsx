@@ -238,6 +238,37 @@ export default function DatabaseHealthPage() {
               </div>
             </div>
 
+            {report.summary.error > 0 && (
+              <div className="premium-card border border-gold/30 bg-gold/5 p-6">
+                <h2 className="font-display text-xl font-semibold">Fix database errors</h2>
+                <p className="mt-3 text-sm leading-7 text-foreground/70">
+                  Migrations 003–007 are missing — the <code className="text-xs">questions</code> table
+                  does not exist yet. Choose one option:
+                </p>
+                <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm leading-7 text-foreground/75">
+                  <li>
+                    <strong>Automated (recommended):</strong> copy your database password from{" "}
+                    <a
+                      href="https://supabase.com/dashboard/project/moeeekjnzupjrnvxbrqw/settings/database"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-primary underline"
+                    >
+                      Supabase → Settings → Database
+                    </a>
+                    , set <code className="text-xs">SUPABASE_DB_PASSWORD</code> in{" "}
+                    <code className="text-xs">.env.local</code>, then run{" "}
+                    <code className="text-xs">npm run db:setup</code> in the project folder.
+                  </li>
+                  <li>
+                    <strong>Manual SQL:</strong> open Supabase → SQL Editor, paste the contents of{" "}
+                    <code className="text-xs">supabase/APPLY_MISSING.sql</code>, run it, then click{" "}
+                    <strong>Run repair</strong> above to import questions.
+                  </li>
+                </ol>
+              </div>
+            )}
+
             {report.questionStats.invalidQuestions.length > 0 && (
               <div className="premium-card p-6">
                 <h2 className="font-display text-xl font-semibold">Invalid questions</h2>

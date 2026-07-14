@@ -1,50 +1,23 @@
 import { createClient } from "@supabase/supabase-js";
-import pg from "pg";
 import { readFileSync, readdirSync } from "fs";
 import { resolve } from "path";
+import { connectPg, loadEnvFile } from "./pg-connection.mjs";
 
-const { Client } = pg;
+const envPath = resolve(process.cwd(), ".env.local");
+const env = loadEnvFile(envPath);
 
-function loadEnv() {
-  const envPath = resolve(process.cwd(), ".env.local");
-  const raw = readFileSync(envPath, "utf8");
-  const env = {};
-  for (const line of raw.split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    const idx = trimmed.indexOf("=");
-    if (idx === -1) continue;
-    env[trimmed.slice(0, idx)] = trimmed.slice(idx + 1);
-  }
-  return env;
+if (!env) {
+  console.error(".env.local not found.");
+  process.exit(1);
 }
 
-const env = loadEnv();
-const projectRef = new URL(env.NEXT_PUBLIC_SUPABASE_URL).hostname.split(".")[0];
-const password = env.SUPABASE_DB_PASSWORD?.trim();
-
-const databaseUrl =
-  env.DATABASE_URL ||
-  env.SUPABASE_DB_URL ||
-  null;
-
-const client = databaseUrl
-  ? new Client({ connectionString: databaseUrl, ssl: { rejectUnauthorized: false } })
-  : password
-    ? new Client({
-        user: `postgres.${projectRef}`,
-        password,
-        host: env.SUPABASE_DB_HOST || "aws-1-ap-south-1.pooler.supabase.com",
-        port: Number(env.SUPABASE_DB_PORT || 5432),
-        database: "postgres",
-        ssl: { rejectUnauthorized: false },
-      })
-    : null;
+const { client, error: connectError } = await connectPg(env);
 
 if (!client) {
   console.error(
-    "Missing DATABASE_URL or SUPABASE_DB_PASSWORD in .env.local.\n" +
-      "Add your Supabase database password from Dashboard → Project Settings → Database → Connection string (URI)."
+    "Could not connect to Supabase Postgres.\n" +
+      (connectError ?? "Missing DATABASE_URL or SUPABASE_DB_PASSWORD") +
+      "\n\nAdd your database password from Supabase Dashboard → Project Settings → Database."
   );
   process.exit(1);
 }
@@ -55,7 +28,6 @@ const files = readdirSync(migrationsDir)
   .sort();
 
 try {
-  await client.connect();
   console.log(`Applying ${files.length} migration file(s)...`);
 
   for (const file of files) {
