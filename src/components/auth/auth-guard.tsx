@@ -64,7 +64,7 @@ export function AuthGuard({
           configured yet on the server.
         </p>
         <Link
-          href={`/login?next=${encodeURIComponent(pathname)}&start=1`}
+          href={`/login?next=${encodeURIComponent(pathname)}`}
           className="inline-flex h-10 items-center justify-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground"
         >
           Try again

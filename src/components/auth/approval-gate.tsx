@@ -11,6 +11,7 @@ interface AccessState {
   authenticated: boolean;
   allowed: boolean;
   role: string;
+  is_guest?: boolean;
   approval_status: string;
   admin_notes?: string | null;
   maintenance?: {
@@ -33,13 +34,22 @@ const PUBLIC_PREFIXES = [
 
 function BlockingPage({ access }: { access: AccessState }) {
   const maintenance = access.maintenance?.enabled;
+  const rejected = ["rejected", "blocked", "suspended", "inactive"].includes(
+    access.approval_status
+  );
   const title = maintenance
     ? `${SITE_NAME} is under gentle maintenance`
-    : "Your account is currently under review";
+    : rejected
+      ? "Your account access is restricted"
+      : "Your account is currently under review";
   const message = maintenance
     ? access.maintenance?.reason ??
       "We are polishing the experience and will be back soon."
-    : "Our team is verifying your registration. You will gain access immediately after approval.";
+    : rejected
+      ? "This account cannot access the site right now. Contact support if you believe this is a mistake."
+      : access.is_guest
+        ? "Your guest session is waiting for admin approval. You will gain access as soon as it is reviewed."
+        : "Our team is verifying your registration. You will gain access immediately after approval.";
 
   return (
     <div className="landing-canvas flex min-h-screen items-center justify-center px-4 py-12">
@@ -50,7 +60,7 @@ function BlockingPage({ access }: { access: AccessState }) {
           {maintenance ? <Sparkles className="size-8" /> : <Clock className="size-8" />}
         </div>
         <p className="text-label mt-8">
-          {maintenance ? "Maintenance Mode" : "Pending Approval"}
+          {maintenance ? "Maintenance Mode" : rejected ? "Access Restricted" : "Pending Approval"}
         </p>
         <h1 className="text-heading-page mt-3">{title}</h1>
         <p className="text-lead mx-auto mt-5 max-w-lg">{message}</p>
@@ -113,12 +123,13 @@ export function ApprovalGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (bypass) return;
     let cancelled = false;
-    fetch("/api/me/access")
-      .then((res) => res.json())
-      .then((data: AccessState) => {
+
+    async function loadAccess() {
+      try {
+        const res = await fetch("/api/me/access");
+        const data = (await res.json()) as AccessState;
         if (!cancelled) setAccess(data);
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) {
           setAccess({
             authenticated: false,
@@ -127,9 +138,18 @@ export function ApprovalGate({ children }: { children: React.ReactNode }) {
             approval_status: "anonymous",
           });
         }
-      });
+      }
+    }
+
+    loadAccess();
+
+    const interval = window.setInterval(() => {
+      if (!cancelled) loadAccess();
+    }, 30000);
+
     return () => {
       cancelled = true;
+      window.clearInterval(interval);
     };
   }, [bypass, pathname]);
 

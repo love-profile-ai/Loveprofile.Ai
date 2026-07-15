@@ -52,6 +52,9 @@ export async function GET(request: Request) {
   if (provider) {
     query = query.eq("provider", provider);
   }
+  if (searchParams.get("guest") === "true") {
+    query = query.eq("is_guest", true);
+  }
 
   const { data: profiles, error, count } = await query;
   if (error) {

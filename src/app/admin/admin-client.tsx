@@ -55,6 +55,7 @@ interface UserRow {
   country: string | null;
   browser: string | null;
   device: string | null;
+  is_guest?: boolean;
   reports_generated: number;
 }
 
@@ -226,7 +227,12 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
     return users.filter((user) => {
       const text = `${user.email ?? ""} ${user.full_name ?? ""} ${user.display_name ?? ""} ${user.role}`.toLowerCase();
       const matchesQuery = !query || text.includes(query.toLowerCase());
-      const matchesFilter = !filter || user.approval_status === filter || user.provider === filter || user.role === filter;
+      const matchesFilter =
+        !filter ||
+        user.approval_status === filter ||
+        user.provider === filter ||
+        user.role === filter ||
+        (filter === "guest" && user.is_guest);
       return matchesQuery && matchesFilter;
     });
   }, [users, query, filter]);
@@ -475,8 +481,13 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
                             className="flex flex-col gap-3 rounded-2xl border border-primary/10 bg-white/35 p-4 sm:flex-row sm:items-center sm:justify-between dark:bg-white/[0.04]"
                           >
                             <div>
-                              <p className="font-bold">{user.full_name ?? user.display_name ?? "Unnamed user"}</p>
+                              <p className="font-bold">{user.full_name ?? user.display_name ?? (user.is_guest ? "Guest user" : "Unnamed user")}</p>
                               <p className="text-xs font-semibold text-foreground/45">{user.email}</p>
+                              {user.is_guest && (
+                                <span className="mt-1 inline-block rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
+                                  Guest
+                                </span>
+                              )}
                             </div>
                             <div className="flex gap-2">
                               <Button size="sm" onClick={() => updateUsers([user.id], "approve")}>
@@ -527,6 +538,7 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
                         <option value="blocked">Blocked</option>
                         <option value="suspended">Suspended</option>
                         <option value="admin">Admins</option>
+                        <option value="guest">Guest users</option>
                         <option value="google">Google users</option>
                         <option value="email">Email users</option>
                       </select>
@@ -576,8 +588,15 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
                                   )}
                                 </div>
                                 <div>
-                                  <p className="font-bold">{user.full_name ?? user.display_name ?? "Unnamed user"}</p>
-                                  <p className="text-xs font-semibold text-foreground/45">{user.email}</p>
+                                  <p className="font-bold">
+                                    {user.full_name ?? user.display_name ?? (user.is_guest ? "Guest user" : "Unnamed user")}
+                                  </p>
+                                  <p className="text-xs font-semibold text-foreground/45">
+                                    {user.is_guest ? "Guest session" : user.email}
+                                  </p>
+                                  {user.is_guest && user.email && (
+                                    <p className="max-w-56 truncate text-[11px] text-foreground/35">{user.email}</p>
+                                  )}
                                 </div>
                               </div>
                             </td>

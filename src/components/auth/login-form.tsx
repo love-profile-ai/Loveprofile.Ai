@@ -70,12 +70,8 @@ export function LoginForm() {
     if (!result.ok) {
       setError(result.error);
       setLoading(null);
-      return;
     }
-    if (result.method === "guest") {
-      router.push(next);
-      setLoading(null);
-    }
+    // OAuth success redirects away — keep loading state visible.
   }
 
   async function handleEmail(e: React.FormEvent) {

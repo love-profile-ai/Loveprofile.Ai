@@ -126,6 +126,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: sessionError.message }, { status: 500 });
     }
 
+    const userId = session.user.id;
+    await admin.from("profiles").upsert(
+      {
+        id: userId,
+        email,
+        is_guest: true,
+        provider: "guest",
+        approval_status: "pending",
+      },
+      { onConflict: "id" }
+    );
+
     return NextResponse.json({
       ok: true,
       access_token: session.access_token,

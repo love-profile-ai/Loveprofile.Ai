@@ -52,6 +52,14 @@ supabase/migrations/004_assessment_summary.sql
 
 Adds `assessment_summary` jsonb for token-optimized AI report input.
 
+### 5. Guest approval requirement
+
+```
+supabase/migrations/009_guest_requires_approval.sql
+```
+
+Requires admin approval for guest sessions (same as registered users).
+
 In **Authentication → Providers**, enable:
 
 - **Anonymous Sign-Ins** (required for guest mode)
@@ -59,7 +67,7 @@ In **Authentication → Providers**, enable:
 
 ## First admin user
 
-New Google/email sign-ups are created with `approval_status = pending` and see a **Pending Approval** screen until an admin approves them. Guest accounts are auto-approved.
+New Google/email sign-ups and guest sessions are created with `approval_status = pending` and see a **Pending Approval** screen until an admin approves them in `/admin`.
 
 ### Automated setup (recommended)
 

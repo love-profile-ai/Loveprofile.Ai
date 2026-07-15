@@ -27,20 +27,11 @@ let idCounter = 0;
 /** Romantic heart trail that follows the cursor across the site */
 export function CursorHeartTrail() {
   const [hearts, setHearts] = useState<TrailHeart[]>([]);
-  const [enabled, setEnabled] = useState(false);
   const reduced = useReducedMotion();
   const { resolvedTheme } = useTheme();
   const lastSpawn = useRef({ x: 0, y: 0, time: 0 });
 
   const palette = resolvedTheme === "dark" ? HEART_COLORS.dark : HEART_COLORS.light;
-
-  useEffect(() => {
-    const finePointer = window.matchMedia("(pointer: fine)");
-    setEnabled(finePointer.matches);
-    const handler = () => setEnabled(finePointer.matches);
-    finePointer.addEventListener("change", handler);
-    return () => finePointer.removeEventListener("change", handler);
-  }, []);
 
   const removeHeart = useCallback((id: number) => {
     setHearts((prev) => prev.filter((h) => h.id !== id));
@@ -73,14 +64,28 @@ export function CursorHeartTrail() {
   );
 
   useEffect(() => {
-    if (reduced || !enabled) return;
+    if (reduced) return;
 
-    const onMove = (e: MouseEvent) => spawnHeart(e.clientX, e.clientY);
-    window.addEventListener("mousemove", onMove, { passive: true });
-    return () => window.removeEventListener("mousemove", onMove);
-  }, [reduced, enabled, spawnHeart]);
+    const onPointerMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
+      spawnHeart(e.clientX, e.clientY);
+    };
 
-  if (reduced || !enabled) return null;
+    const onTouchMove = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      if (!touch) return;
+      spawnHeart(touch.clientX, touch.clientY);
+    };
+
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("touchmove", onTouchMove);
+    };
+  }, [reduced, spawnHeart]);
+
+  if (reduced) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-30 overflow-hidden" aria-hidden>

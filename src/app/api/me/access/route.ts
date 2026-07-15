@@ -35,7 +35,8 @@ export async function GET(request: Request) {
   const role = profile?.role ?? "user";
   const approvalStatus = profile?.approval_status ?? "pending";
   const isAdmin = role === "admin" && approvalStatus === "approved";
-  const isGuest = Boolean(profile?.is_guest);
+  const isGuest = Boolean(profile?.is_guest) || user.email?.includes("@guest.loveprofile.ai");
+  const blockedStatuses = new Set(["rejected", "blocked", "suspended", "inactive"]);
   const maintenanceValue = (maintenance?.value ?? {}) as {
     enabled?: boolean;
     reason?: string;
@@ -44,9 +45,8 @@ export async function GET(request: Request) {
   };
 
   const allowed =
-    isAdmin ||
-    isGuest ||
-    (approvalStatus === "approved" && !maintenanceValue.enabled);
+    !blockedStatuses.has(approvalStatus) &&
+    (isAdmin || (approvalStatus === "approved" && !maintenanceValue.enabled));
 
   if (allowed) {
     const userAgent = request.headers.get("user-agent") ?? "";
@@ -67,6 +67,7 @@ export async function GET(request: Request) {
     authenticated: true,
     allowed,
     role,
+    is_guest: isGuest,
     approval_status: approvalStatus,
     admin_notes: profile?.admin_notes ?? null,
     maintenance: maintenanceValue,

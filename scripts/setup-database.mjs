@@ -64,7 +64,7 @@ try {
           avatar_url: user.user_metadata?.avatar_url ?? null,
           provider: user.app_metadata?.provider ?? "email",
           is_guest: isGuest,
-          approval_status: isGuest ? "approved" : "pending",
+          approval_status: "pending",
           role: "user",
         });
       }

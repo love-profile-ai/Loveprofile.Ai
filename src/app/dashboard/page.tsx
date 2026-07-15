@@ -12,6 +12,7 @@ import {
   signInWithGoogle,
   signInWithEmail,
   signOut,
+  isGuestEmail,
 } from "@/hooks/use-auth";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -43,6 +44,8 @@ export default function DashboardPage() {
   const [emailSent, setEmailSent] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
+  const isGuest = isGuestEmail(userEmail);
+  const hasRealAccount = Boolean(userEmail && !isGuest);
 
   useEffect(() => {
     const supabase = createClient();
@@ -70,11 +73,11 @@ export default function DashboardPage() {
       },
       {
         label: "Private mode",
-        value: userEmail ? "Synced" : "Guest",
+        value: hasRealAccount ? "Synced" : "Guest",
         icon: LockKeyhole,
       },
     ],
-    [reports.length, userEmail]
+    [reports.length, hasRealAccount]
   );
 
   async function handleDelete(id: string) {
@@ -152,18 +155,20 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-label">Account</p>
                   <h2 className="font-display text-2xl font-semibold">
-                    {userEmail ? "Synced account" : "Guest reflection"}
+                    {hasRealAccount ? "Synced account" : "Guest reflection"}
                   </h2>
                 </div>
               </div>
 
               <p className="mt-4 text-sm font-medium leading-7 text-foreground/62">
-                {userEmail
+                {hasRealAccount
                   ? `Signed in as ${userEmail}`
                   : "You are using guest mode. Sign in to save reports across devices."}
               </p>
 
               <div className="mt-5 flex flex-wrap gap-2">
+                {!hasRealAccount && (
+                  <>
                 <Button
                   variant="outline"
                   size="sm"
@@ -172,12 +177,6 @@ export default function DashboardPage() {
                     const result = await signInWithGoogle("/dashboard");
                     if (!result.ok) {
                       setAuthError(result.error);
-                      return;
-                    }
-                    if (result.method === "guest") {
-                      const supabase = createClient();
-                      const { data: { user } } = await supabase.auth.getUser();
-                      setUserEmail(user?.email ?? null);
                     }
                   }}
                 >
@@ -192,12 +191,6 @@ export default function DashboardPage() {
                       const result = await signInWithEmail(email, "/dashboard");
                       if (!result.ok) {
                         setAuthError(result.error);
-                        return;
-                      }
-                      if (result.method === "guest") {
-                        const supabase = createClient();
-                        const { data: { user } } = await supabase.auth.getUser();
-                        setUserEmail(user?.email ?? null);
                         return;
                       }
                       setEmailSent(true);
@@ -219,6 +212,8 @@ export default function DashboardPage() {
                   <p className="text-sm font-semibold text-primary">
                     Check your email for a sign-in link.
                   </p>
+                )}
+                  </>
                 )}
                 {userEmail && (
                   <Button

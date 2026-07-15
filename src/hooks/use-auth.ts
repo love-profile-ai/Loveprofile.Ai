@@ -29,6 +29,10 @@ function guestConfigError(): string {
   return "Sign-in is not configured on the server. Ask the site owner to set NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, and SUPABASE_SERVICE_ROLE_KEY in the deployment environment.";
 }
 
+export function isGuestEmail(email: string | null | undefined): boolean {
+  return Boolean(email?.includes("@guest.loveprofile.ai"));
+}
+
 async function createGuestSession(
   supabase: ReturnType<typeof createClient>
 ): Promise<AuthResult> {
@@ -115,10 +119,6 @@ export async function signInWithGoogle(next = "/disclaimer"): Promise<AuthResult
   });
 
   if (error) {
-    if (isProviderDisabledError(error.message)) {
-      const guest = await ensureAuth();
-      return guest.ok ? { ...guest, method: "guest" } : guest;
-    }
     return {
       ok: false,
       error: normalizeAuthErrorMessage(error.message),
@@ -126,10 +126,14 @@ export async function signInWithGoogle(next = "/disclaimer"): Promise<AuthResult
   }
 
   if (data.url) {
+    window.location.assign(data.url);
     return { ok: true, method: "oauth" };
   }
 
-  return { ok: true, method: "oauth" };
+  return {
+    ok: false,
+    error: "Google sign-in could not be started. Please try again.",
+  };
 }
 
 export async function signInWithEmail(
@@ -144,10 +148,6 @@ export async function signInWithEmail(
   });
 
   if (error) {
-    if (isProviderDisabledError(error.message)) {
-      const guest = await ensureAuth();
-      return guest.ok ? { ...guest, method: "guest" } : guest;
-    }
     return {
       ok: false,
       error: normalizeAuthErrorMessage(error.message),
