@@ -10,7 +10,7 @@ export function Footer() {
           <p className="mt-1 text-sm font-medium text-foreground/52">{SITE_TAGLINE}</p>
         </div>
         <div className="flex flex-wrap justify-center gap-6 text-sm font-semibold text-foreground/55">
-          <Link href="/disclaimer" className="transition-colors hover:text-primary">
+          <Link href="/login?next=/disclaimer" className="transition-colors hover:text-primary">
             Begin
           </Link>
           <Link href="/dashboard" className="transition-colors hover:text-primary">

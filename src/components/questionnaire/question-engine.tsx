@@ -19,7 +19,6 @@ import {
 } from "@/lib/questionnaire/engine";
 import { ensureAuth } from "@/hooks/use-auth";
 import { getLocalSession, saveLocalSession } from "@/lib/local-session";
-import { saveLocalReport } from "@/lib/local-report";
 import type { AnalysisPath, Answer } from "@/types/questionnaire";
 import { Loader2 } from "lucide-react";
 
@@ -115,32 +114,14 @@ export function QuestionEngine({
       try {
         const auth = await ensureAuth();
 
-        if (auth.ok) {
-          const res = await fetch("/api/analyze", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              sessionId,
-              path,
-              answers: updatedAnswers,
-            }),
-          });
-
-          if (res.ok) {
-            const data = await res.json();
-            router.push(`/report/${data.reportId}`);
-            return;
-          }
-
-          if (res.status === 429) {
-            const data = await res.json().catch(() => ({}));
-            throw new Error(
-              (data as { error?: string }).error ?? "Too many requests. Try again later."
-            );
-          }
+        if (!auth.ok) {
+          router.push(`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+          setAnalyzing(false);
+          setLoading(false);
+          return;
         }
 
-        const localRes = await fetch("/api/analyze/local", {
+        const res = await fetch("/api/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -150,26 +131,23 @@ export function QuestionEngine({
           }),
         });
 
-        if (!localRes.ok) {
-          const data = await localRes.json().catch(() => ({}));
+        if (res.ok) {
+          const data = await res.json();
+          router.push(`/report/${data.reportId}`);
+          return;
+        }
+
+        if (res.status === 429) {
+          const data = await res.json().catch(() => ({}));
           throw new Error(
-            (data as { error?: string }).error ??
-              (auth.ok
-                ? "Analysis failed."
-                : `${auth.error} Could not generate a report.`)
+            (data as { error?: string }).error ?? "Too many requests. Try again later."
           );
         }
 
-        const { analysis } = await localRes.json();
-        const reportId = crypto.randomUUID();
-        saveLocalReport({
-          id: reportId,
-          title: "Relationship Analysis",
-          path,
-          answers: updatedAnswers,
-          analysis,
-        });
-        router.push(`/report/local/${reportId}`);
+        const data = await res.json().catch(() => ({}));
+        throw new Error(
+          (data as { error?: string }).error ?? "Analysis failed. Please try again."
+        );
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
         setAnalyzing(false);

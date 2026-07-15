@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { use, useEffect, useState } from "react";
+import { AuthGuard } from "@/components/auth/auth-guard";
 import { DisclaimerGuard } from "@/components/marketing/disclaimer-guard";
 import { AdaptiveQuestionEngine } from "@/components/questionnaire/adaptive-question-engine";
 import { AppHeader } from "@/components/shared/app-header";
@@ -18,7 +19,20 @@ export default function SessionPageClient({
 }: {
   params: Promise<{ sessionId: string }>;
 }) {
+  return (
+    <AuthGuard redirectTo="/login">
+      <SessionContent params={params} />
+    </AuthGuard>
+  );
+}
+
+function SessionContent({
+  params,
+}: {
+  params: Promise<{ sessionId: string }>;
+}) {
   const { sessionId } = use(params);
+  const router = useRouter();
   const searchParams = useSearchParams();
   const path = searchParams.get("path") as AnalysisPath;
   const isLocal = searchParams.get("local") === "1";
@@ -32,7 +46,7 @@ export default function SessionPageClient({
 
   useEffect(() => {
     if (isLocal) {
-      setReady(true);
+      router.replace("/login?next=%2Fanalyze");
       return;
     }
 
@@ -46,7 +60,7 @@ export default function SessionPageClient({
       sessionStorage.removeItem(`${BOOTSTRAP_PREFIX}${sessionId}`);
     }
     setReady(true);
-  }, [sessionId, isLocal]);
+  }, [sessionId, isLocal, router]);
 
   if (!path) {
     return (
@@ -83,7 +97,7 @@ export default function SessionPageClient({
             <AdaptiveQuestionEngine
               sessionId={sessionId}
               path={path}
-              localMode={isLocal}
+              localMode={false}
               initialQuestion={bootstrap.question}
               initialProfile={bootstrap.profile}
               initialSummary={bootstrap.assessment_summary}

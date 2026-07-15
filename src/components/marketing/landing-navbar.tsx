@@ -54,7 +54,7 @@ export function LandingNavbar() {
         >
           Sign in
         </Link>
-        <Link href="/disclaimer">
+        <Link href="/login?next=/disclaimer">
           <Button size="sm" className="btn-cta rounded-full px-5 text-xs">
             Begin
           </Button>

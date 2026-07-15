@@ -48,8 +48,8 @@ function LoginContent() {
             Welcome to {SITE_NAME}
           </h1>
           <p className="text-lead mx-auto mt-4 max-w-sm">
-            Your private space for relationship reflection. Sign in to save
-            reports — or continue as guest instantly.
+            Sign in to access your private relationship reflection space and save
+            your reports.
           </p>
         </FadeInView>
 

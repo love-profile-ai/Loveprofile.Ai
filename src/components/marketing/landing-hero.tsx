@@ -104,7 +104,7 @@ const faqs = [
   },
   {
     q: "Do I need an account?",
-    a: "You can start as a guest instantly. Sign in only when you want to save reports across devices.",
+    a: "Yes. Sign in with Google or email to begin your reflection and save reports across devices.",
   },
   {
     q: "Is my data private?",
@@ -142,15 +142,10 @@ export function LandingHero() {
               returns a thoughtful report that reads like discovery, not diagnosis.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Link href="/disclaimer">
+              <Link href="/login?next=/disclaimer">
                 <Button size="lg" className="btn-cta h-14 w-full sm:w-auto">
                   Begin reflection
                   <ArrowRight className="ml-2 size-4" />
-                </Button>
-              </Link>
-              <Link href="/login">
-                <Button size="lg" variant="outline" className="btn-outline-romantic h-14 rounded-full px-8">
-                  Sign in to save
                 </Button>
               </Link>
             </div>
@@ -362,9 +357,9 @@ export function LandingHero() {
                   Ready to understand what you feel?
                 </h2>
                 <p className="text-lead mx-auto mt-4 max-w-md">
-                  Start your private reflection. No account required.
+                  Sign in to start your private reflection journey.
                 </p>
-                <Link href="/disclaimer" className="mt-8 inline-block">
+                <Link href="/login?next=/disclaimer" className="mt-8 inline-block">
                   <Button size="lg" className="btn-cta h-14 px-10">
                     Begin with {SITE_NAME}
                     <ArrowRight className="ml-2 size-4" />

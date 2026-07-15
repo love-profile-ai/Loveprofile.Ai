@@ -2,18 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { AuthGuard } from "@/components/auth/auth-guard";
 import { AppHeader } from "@/components/shared/app-header";
 import { PageShell } from "@/components/shared/page-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  useAuth,
-  signInWithGoogle,
-  signInWithEmail,
-  signOut,
-  isGuestEmail,
-} from "@/hooks/use-auth";
+import { signOut } from "@/hooks/use-auth";
 import { createClient } from "@/lib/supabase/client";
 import {
   ArrowRight,
@@ -37,15 +33,19 @@ interface ReportSummary {
 }
 
 export default function DashboardPage() {
-  useAuth();
+  return (
+    <AuthGuard redirectTo="/login">
+      <DashboardContent />
+    </AuthGuard>
+  );
+}
+
+function DashboardContent() {
+  const router = useRouter();
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [loading, setLoading] = useState(true);
-  const [email, setEmail] = useState("");
-  const [emailSent, setEmailSent] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
-  const isGuest = isGuestEmail(userEmail);
-  const hasRealAccount = Boolean(userEmail && !isGuest);
 
   useEffect(() => {
     const supabase = createClient();
@@ -73,11 +73,11 @@ export default function DashboardPage() {
       },
       {
         label: "Private mode",
-        value: hasRealAccount ? "Synced" : "Guest",
+        value: userEmail ? "Synced" : "Signed in",
         icon: LockKeyhole,
       },
     ],
-    [reports.length, hasRealAccount]
+    [reports.length, userEmail]
   );
 
   async function handleDelete(id: string) {
@@ -155,84 +155,33 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-label">Account</p>
                   <h2 className="font-display text-2xl font-semibold">
-                    {hasRealAccount ? "Synced account" : "Guest reflection"}
+                    Your account
                   </h2>
                 </div>
               </div>
 
               <p className="mt-4 text-sm font-medium leading-7 text-foreground/62">
-                {hasRealAccount
+                {userEmail
                   ? `Signed in as ${userEmail}`
-                  : "You are using guest mode. Sign in to save reports across devices."}
+                  : "Your account is connected."}
               </p>
 
               <div className="mt-5 flex flex-wrap gap-2">
-                {!hasRealAccount && (
-                  <>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={async () => {
                     setAuthError(null);
-                    const result = await signInWithGoogle("/dashboard");
-                    if (!result.ok) {
+                    const result = await signOut();
+                    if (result.ok) {
+                      router.replace("/login");
+                    } else {
                       setAuthError(result.error);
                     }
                   }}
                 >
-                  Continue with Google
+                  Sign out
                 </Button>
-                {!emailSent ? (
-                  <form
-                    className="flex flex-1 flex-col gap-2 sm:flex-row"
-                    onSubmit={async (e) => {
-                      e.preventDefault();
-                      setAuthError(null);
-                      const result = await signInWithEmail(email, "/dashboard");
-                      if (!result.ok) {
-                        setAuthError(result.error);
-                        return;
-                      }
-                      setEmailSent(true);
-                    }}
-                  >
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Email for magic link"
-                      className="premium-input h-9 min-w-0 flex-1 rounded-full text-sm"
-                      required
-                    />
-                    <Button type="submit" variant="outline" size="sm">
-                      Email link
-                    </Button>
-                  </form>
-                ) : (
-                  <p className="text-sm font-semibold text-primary">
-                    Check your email for a sign-in link.
-                  </p>
-                )}
-                  </>
-                )}
-                {userEmail && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={async () => {
-                      setAuthError(null);
-                      const result = await signOut();
-                      if (result.ok) {
-                        setUserEmail(null);
-                        setEmailSent(false);
-                      } else {
-                        setAuthError(result.error);
-                      }
-                    }}
-                  >
-                    Sign out
-                  </Button>
-                )}
               </div>
               {authError && (
                 <p className="mt-4 rounded-2xl border border-destructive/25 bg-destructive/8 px-4 py-3 text-sm font-semibold text-destructive">

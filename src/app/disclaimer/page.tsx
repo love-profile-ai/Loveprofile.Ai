@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { AuthGuard } from "@/components/auth/auth-guard";
 import { DisclaimerCard } from "@/components/marketing/disclaimer-card";
 import { LandingNavbar } from "@/components/marketing/landing-navbar";
 import { FadeInView } from "@/components/motion/fade-in-view";
@@ -32,6 +33,14 @@ const safetyCards = [
 ];
 
 export default function DisclaimerPage() {
+  return (
+    <AuthGuard redirectTo="/login">
+      <DisclaimerContent />
+    </AuthGuard>
+  );
+}
+
+function DisclaimerContent() {
   const router = useRouter();
 
   useEffect(() => {

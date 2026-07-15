@@ -2,25 +2,25 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { AuthGuard } from "@/components/auth/auth-guard";
 import { DisclaimerGuard } from "@/components/marketing/disclaimer-guard";
 import { AnalyzePathSection } from "@/components/marketing/analyze-path-section";
 import { AppHeader } from "@/components/shared/app-header";
 import { ensureAuth } from "@/hooks/use-auth";
-import { createLocalSession } from "@/lib/local-session";
 import type { AnalysisPath } from "@/types/questionnaire";
 
-export default function AnalyzePage() {
+function AnalyzeContent() {
   const router = useRouter();
   const [loading, setLoading] = useState<AnalysisPath | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function startAnalysis(path: AnalysisPath) {
     setLoading(path);
+    setError(null);
     const auth = await ensureAuth();
 
     if (!auth.ok) {
-      const localId = crypto.randomUUID();
-      createLocalSession(localId, path);
-      router.push(`/analyze/${localId}?path=${path}&local=1`);
+      router.push(`/login?next=${encodeURIComponent("/analyze")}`);
       setLoading(null);
       return;
     }
@@ -45,13 +45,13 @@ export default function AnalyzePage() {
         setLoading(null);
         return;
       }
+
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      setError(data.error ?? "Could not start your session. Please try again.");
     } catch {
-      // Fall through to local session
+      setError("Could not start your session. Please try again.");
     }
 
-    const localId = crypto.randomUUID();
-    createLocalSession(localId, path);
-    router.push(`/analyze/${localId}?path=${path}&local=1`);
     setLoading(null);
   }
 
@@ -63,8 +63,23 @@ export default function AnalyzePage() {
         <div className="mx-auto w-full max-w-5xl px-4 sm:px-6">
           <AppHeader />
         </div>
+        {error && (
+          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+            <p className="mt-4 rounded-2xl border border-destructive/25 bg-destructive/8 px-4 py-3 text-sm font-semibold text-destructive">
+              {error}
+            </p>
+          </div>
+        )}
         <AnalyzePathSection loading={loading} onStart={startAnalysis} />
       </div>
     </DisclaimerGuard>
+  );
+}
+
+export default function AnalyzePage() {
+  return (
+    <AuthGuard redirectTo="/login">
+      <AnalyzeContent />
+    </AuthGuard>
   );
 }
