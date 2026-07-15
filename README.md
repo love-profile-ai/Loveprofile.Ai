@@ -62,8 +62,47 @@ Requires admin approval for guest sessions (same as registered users).
 
 In **Authentication → Providers**, enable:
 
-- **Anonymous Sign-Ins** (required for guest mode)
-- **Google** and **Email** (optional, for full sign-in)
+- **Google** (required for Google sign-in)
+- **Email** (required for magic-link sign-in)
+
+### Google OAuth setup (fixes `Error 401: invalid_client`)
+
+This error means Supabase does not have a valid Google OAuth client configured.
+
+1. Open [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → **Create credentials** → **OAuth client ID** → **Web application**.
+2. Add this **Authorized redirect URI** (replace `<project-ref>` with your Supabase project ref):
+
+```
+https://<project-ref>.supabase.co/auth/v1/callback
+```
+
+3. In Supabase → **Authentication → Providers → Google**:
+   - Enable Google
+   - Paste **Client ID** and **Client Secret** from Google Cloud
+   - Save
+
+4. In Supabase → **Authentication → URL Configuration**, add:
+   - **Site URL:** your production site (e.g. `https://loveprofile-ai-loveprofile-team.vercel.app`)
+   - **Redirect URLs:**
+     - `https://loveprofile-ai-loveprofile-team.vercel.app/auth/callback`
+     - `http://localhost:3000/auth/callback`
+
+5. Verify from the deployed app:
+
+```
+GET /api/auth/provider-status
+```
+
+Or configure automatically if you have a Supabase access token:
+
+```bash
+# Add to .env.local:
+# SUPABASE_ACCESS_TOKEN=...
+# GOOGLE_CLIENT_ID=...
+# GOOGLE_CLIENT_SECRET=...
+
+npm run auth:configure-google
+```
 
 ## First admin user
 

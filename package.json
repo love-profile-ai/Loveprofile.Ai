@@ -12,7 +12,9 @@
     "lint": "eslint",
     "db:setup": "node scripts/setup-database.mjs",
     "db:generate-missing": "node scripts/generate-apply-missing.mjs",
-    "db:promote-admin": "node scripts/promote-admin.mjs"
+    "db:promote-admin": "node scripts/promote-admin.mjs",
+    "auth:check": "node scripts/check-auth-settings.mjs",
+    "auth:configure-google": "node scripts/configure-google-oauth.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,24 @@ import { Input } from "@/components/ui/input";
 import { signInWithEmail, signInWithGoogle } from "@/hooks/use-auth";
 import { Loader2, Mail, Shield, Sparkles } from "lucide-react";
 import { SITE_NAME } from "@/lib/site";
+
+interface ProviderStatus {
+  configured: boolean;
+  googleEnabled: boolean;
+  googleClientConfigured: boolean;
+  emailEnabled: boolean;
+  googleCallbackUrl?: string;
+  message?: string;
+}
+
+function friendlyAuthError(raw: string | null): string | null {
+  if (!raw) return null;
+  const lower = raw.toLowerCase();
+  if (lower.includes("invalid_client") || lower.includes("oauth client was not found")) {
+    return "Google sign-in is not configured correctly yet. The site owner must add a valid Google OAuth Client ID and Secret in Supabase → Authentication → Providers → Google.";
+  }
+  return raw;
+}
 
 export function LoginForm() {
   const searchParams = useSearchParams();
@@ -17,16 +35,36 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState<string | null>(null);
   const [emailSent, setEmailSent] = useState(false);
+  const [providerStatus, setProviderStatus] = useState<ProviderStatus | null>(
+    null
+  );
   const [error, setError] = useState<string | null>(
-    callbackError ? decodeURIComponent(callbackError) : null
+    friendlyAuthError(callbackError ? decodeURIComponent(callbackError) : null)
   );
 
+  useEffect(() => {
+    fetch("/api/auth/provider-status")
+      .then((res) => res.json())
+      .then((data: ProviderStatus) => setProviderStatus(data))
+      .catch(() => {
+        setProviderStatus(null);
+      });
+  }, []);
+
   async function handleGoogle() {
+    if (providerStatus && !providerStatus.configured) {
+      setError(
+        providerStatus.message ??
+          "Google sign-in is not configured on the server yet."
+      );
+      return;
+    }
+
     setLoading("google");
     setError(null);
     const result = await signInWithGoogle(next);
     if (!result.ok) {
-      setError(result.error);
+      setError(friendlyAuthError(result.error));
       setLoading(null);
     }
   }
@@ -59,10 +97,26 @@ export function LoginForm() {
       </p>
 
       <div className="mt-8 space-y-3">
+        {providerStatus && !providerStatus.configured && (
+          <p className="rounded-2xl border border-gold/25 bg-gold/10 px-4 py-3 text-sm font-semibold text-foreground/75">
+            {providerStatus.message}
+            {providerStatus.googleCallbackUrl && (
+              <>
+                {" "}
+                In Google Cloud Console, set the redirect URI to{" "}
+                <span className="break-all font-mono text-xs">
+                  {providerStatus.googleCallbackUrl}
+                </span>
+                .
+              </>
+            )}
+          </p>
+        )}
+
         <Button
           type="button"
           className="btn-cta h-12 w-full"
-          disabled={!!loading}
+          disabled={!!loading || Boolean(providerStatus && !providerStatus.configured)}
           onClick={handleGoogle}
         >
           {loading === "google" ? (
