@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { LandingNavbar } from "@/components/marketing/landing-navbar";
+import { LandingFloatingCards } from "@/components/marketing/landing-floating-cards";
 import { Footer } from "@/components/marketing/footer";
 import { FadeInView } from "@/components/motion/fade-in-view";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ import {
   ArrowRight,
   Heart,
   MessageCircle,
-  Shield,
+  PartyPopper,
   Sparkles,
   Star,
   Lock,
@@ -34,22 +35,25 @@ const NilaOrb = dynamic(
 const howItWorks = [
   {
     step: "01",
-    title: "Share your story",
-    description: "Answer gentle, adaptive questions that respond to what you reveal — never a rigid checklist.",
+    title: "Spill the tea (privately)",
+    description:
+      "Answer playful, adaptive questions that follow your drama — not a boring checklist from 2009.",
     icon: MessageCircle,
     accent: "accent-rose",
   },
   {
     step: "02",
-    title: "LoveProfile reads the patterns",
-    description: "Our engine maps emotional consistency, trust, communication, and closeness across dimensions.",
+    title: "AI reads the vibes",
+    description:
+      "We map trust, mixed signals, communication chaos, and emotional math across your answers.",
     icon: Sparkles,
     accent: "accent-gold",
   },
   {
     step: "03",
-    title: "Receive your reflection",
-    description: "A magazine-style report with a personal AI summary and compassionate next steps.",
+    title: "Get your roast… lovingly",
+    description:
+      "A colorful report with insights, flags, and advice that feels like a witty friend — not a courtroom.",
     icon: Heart,
     accent: "accent-lavender",
   },
@@ -84,35 +88,35 @@ const themes = [
 
 const testimonials = [
   {
-    quote: "It felt like opening a private journal — not filling out a form.",
+    quote: "Felt like texting a friend who actually listens — not taking a job interview about my crush.",
     author: "Maya, 28",
   },
   {
-    quote: "The report was gentle but honest. I finally understood the mixed signals.",
+    quote: "The report called out my situationship with kindness. Rude, but accurate.",
     author: "James, 34",
   },
   {
-    quote: "Beautiful design. I kept reading the report twice because it felt so personal.",
+    quote: "Pretty enough to screenshot. Chaotic enough to feel real.",
     author: "Priya, 31",
   },
 ];
 
 const faqs = [
   {
-    q: "Is this therapy or medical advice?",
-    a: `No. ${SITE_NAME} is a self-reflection tool for educational purposes. It helps you organize what you already feel — it does not diagnose or replace professional support.`,
+    q: "Is this therapy?",
+    a: `Nope. ${SITE_NAME} is for fun self-reflection and educational giggles — not diagnosis, not legal advice, not a substitute for a real therapist.`,
   },
   {
-    q: "Do I need an account?",
-    a: "Yes. Sign in with Google or email to begin your reflection and save reports across devices.",
+    q: "Can I sneak in as a guest?",
+    a: "No guest mode. Sign in with Google or email, get approved by admin, then enter. VIP energy only.",
   },
   {
     q: "Is my data private?",
-    a: "Your answers stay private by default. We never create public profiles or share your reflections.",
+    a: "Your answers stay yours. We are not building a public leaderboard of heartbreak.",
   },
   {
     q: "How long does it take?",
-    a: "Most reflections take 5–10 minutes. The engine adapts — some paths are shorter, some go deeper.",
+    a: "About 5–10 minutes — roughly one playlist of emotionally unhinged pop songs.",
   },
 ];
 
@@ -126,40 +130,41 @@ export function LandingHero() {
       <main className="relative mx-auto w-full max-w-6xl px-4 sm:px-6">
         {/* Hero — asymmetrical */}
         <section className="hero-romantic-panel grid items-center gap-8 py-16 lg:grid-cols-[1fr_1.1fr] lg:gap-4 lg:py-24">
+          <LandingFloatingCards />
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
             className="relative z-10 max-w-xl"
           >
-            <p className="text-label">Your private relationship journal</p>
+            <p className="text-label">Not a serious app (on purpose)</p>
             <h1 className="text-display mt-5">
-              Understand the patterns beneath your{" "}
-              <span className="text-display-accent">feelings.</span>
+              Decode your love chaos with a side of{" "}
+              <span className="text-display-accent">fun.</span>
             </h1>
             <p className="text-lead mt-6">
-              {SITE_NAME} guides you through a calm, romantic reflection — and
-              returns a thoughtful report that reads like discovery, not diagnosis.
+              {SITE_NAME} turns your romantic overthinking into a colorful AI report —
+              sign in, get admin-approved, then let the vibes get analyzed.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-              <Link href="/login?next=/disclaimer">
+              <Link href="/login">
                 <Button size="lg" className="btn-cta h-14 w-full sm:w-auto">
-                  Begin reflection
+                  Sign in to get started
                   <ArrowRight className="ml-2 size-4" />
                 </Button>
               </Link>
             </div>
             <div className="mt-8 flex flex-wrap gap-3">
               {[
-                { label: "Private by default", color: "from-teal/15 to-teal/5 border-teal/25 text-teal dark:from-teal/20 dark:to-teal/8 dark:border-teal/35 dark:text-teal" },
-                { label: "No scoring people", color: "from-lavender/20 to-lavender/5 border-lavender/30 text-lavender dark:from-lavender/25 dark:to-lavender/8 dark:border-lavender/40 dark:text-lavender" },
-                { label: "5 min guided path", color: "from-primary/18 to-coral/8 border-primary/25 text-primary dark:from-primary/22 dark:to-coral/10 dark:border-primary/35 dark:text-primary" },
+                { label: "No guest sneak-ins", color: "from-teal/18 to-teal/6 border-teal/30 text-teal dark:from-teal/20 dark:to-teal/8 dark:border-teal/35 dark:text-teal" },
+                { label: "Admin-approved only", color: "from-lavender/22 to-lavender/8 border-lavender/35 text-lavender dark:from-lavender/25 dark:to-lavender/8 dark:border-lavender/40 dark:text-lavender" },
+                { label: "~5 min of drama", color: "from-primary/20 to-coral/10 border-primary/30 text-primary dark:from-primary/22 dark:to-coral/10 dark:border-primary/35 dark:text-primary" },
               ].map((t) => (
                 <span
                   key={t.label}
                   className={`inline-flex items-center gap-1.5 rounded-full border bg-gradient-to-r px-3 py-1.5 text-xs font-bold ${t.color}`}
                 >
-                  <Shield className="size-3.5 shrink-0 opacity-80" />
+                  <PartyPopper className="size-3.5 shrink-0 opacity-80" />
                   {t.label}
                 </span>
               ))}
@@ -181,7 +186,7 @@ export function LandingHero() {
           <FadeInView className="mx-auto max-w-2xl text-center">
             <p className="text-label">How it works</p>
             <h2 className="text-heading-page mt-3">
-              Three gentle steps to clarity.
+              Three steps. Zero boring forms.
             </h2>
           </FadeInView>
           <div className="mt-12 grid gap-5 md:grid-cols-3">
@@ -239,15 +244,15 @@ export function LandingHero() {
                 <div>
                   <p className="text-label">Sample report</p>
                   <h2 className="font-display mt-3 text-3xl font-semibold sm:text-4xl">
-                    Mixed signals, gently clarified.
+                    Mixed signals, comically clarified.
                   </h2>
                   <p className="text-lead mt-5 max-w-lg">
-                    Your report opens with a hero summary, confidence score, and
-                    the one observation that matters most.
+                    Your report opens with a vibe check, a confidence meter, and
+                    the one observation that makes you go &ldquo;…oh.&rdquo;
                   </p>
-                  <blockquote className="mt-8 rounded-3xl border border-primary/15 bg-primary/8 p-6 font-display text-xl italic leading-relaxed text-foreground/82">
+                  <blockquote className="mt-8 rounded-3xl border border-primary/15 bg-gradient-to-br from-primary/12 via-lavender/8 to-coral/8 p-6 font-display text-xl italic leading-relaxed text-foreground/82">
                     &ldquo;There is warmth here — but clarity will come from
-                    consistency, not guessing.&rdquo;
+                    consistency, not decoding emojis at 2 a.m.&rdquo;
                   </blockquote>
                 </div>
 
@@ -296,7 +301,7 @@ export function LandingHero() {
         <section className="py-20">
           <FadeInView className="mx-auto max-w-2xl text-center">
             <p className="text-label">Voices</p>
-            <h2 className="text-heading-page mt-3">Reflection, not interrogation.</h2>
+            <h2 className="text-heading-page mt-3">Chaos, but make it cute.</h2>
           </FadeInView>
           <div className="mt-12 grid gap-5 md:grid-cols-3">
             {testimonials.map((t, i) => (
@@ -354,14 +359,15 @@ export function LandingHero() {
               <div className="relative">
                 <TrendingUp className="mx-auto size-8 text-gold" />
                 <h2 className="font-display mt-6 text-3xl font-semibold sm:text-4xl">
-                  Ready to understand what you feel?
+                  Ready to overthink with style?
                 </h2>
                 <p className="text-lead mx-auto mt-4 max-w-md">
-                  Sign in to start your private reflection journey.
+                  Sign in, wait for admin approval, then let the AI translate your
+                  romantic nonsense into something readable.
                 </p>
-                <Link href="/login?next=/disclaimer" className="mt-8 inline-block">
+                <Link href="/login" className="mt-8 inline-block">
                   <Button size="lg" className="btn-cta h-14 px-10">
-                    Begin with {SITE_NAME}
+                    Sign in to {SITE_NAME}
                     <ArrowRight className="ml-2 size-4" />
                   </Button>
                 </Link>

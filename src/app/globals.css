@@ -420,13 +420,15 @@
 
     background:
 
-      radial-gradient(ellipse 55% 45% at 8% 12%, rgba(212, 120, 138, 0.2), transparent 55%),
+      radial-gradient(ellipse 55% 45% at 8% 12%, rgba(212, 120, 138, 0.28), transparent 55%),
 
-      radial-gradient(ellipse 50% 40% at 92% 8%, rgba(212, 168, 74, 0.14), transparent 50%),
+      radial-gradient(ellipse 50% 40% at 92% 8%, rgba(212, 168, 74, 0.2), transparent 50%),
 
-      radial-gradient(ellipse 45% 35% at 70% 88%, rgba(232, 120, 90, 0.12), transparent 50%),
+      radial-gradient(ellipse 45% 35% at 70% 88%, rgba(232, 120, 90, 0.18), transparent 50%),
 
-      radial-gradient(ellipse 40% 35% at 25% 75%, rgba(155, 135, 200, 0.16), transparent 48%);
+      radial-gradient(ellipse 40% 35% at 25% 75%, rgba(155, 135, 200, 0.22), transparent 48%),
+
+      radial-gradient(ellipse 35% 30% at 50% 45%, rgba(91, 184, 176, 0.1), transparent 45%);
 
   }
 
@@ -448,9 +450,9 @@
 
   .dot-grid {
 
-    background-image: radial-gradient(circle, rgba(212, 120, 138, 0.16) 1px, transparent 1px);
+    background-image: radial-gradient(circle, rgba(212, 120, 138, 0.22) 1px, transparent 1px);
 
-    background-size: 26px 26px;
+    background-size: 24px 24px;
 
     mask-image: linear-gradient(to bottom, black, transparent 88%);
 
@@ -481,6 +483,52 @@
   .landing-canvas {
 
     @apply relative min-h-screen overflow-hidden;
+
+  }
+
+
+
+  .hero-romantic-panel {
+
+    position: relative;
+
+  }
+
+
+
+  .hero-romantic-panel::before {
+
+    content: "";
+
+    pointer-events: none;
+
+    position: absolute;
+
+    inset: -8% -4% 0;
+
+    z-index: 0;
+
+    background:
+
+      radial-gradient(ellipse 70% 55% at 8% 35%, rgba(253, 232, 236, 0.95), transparent 58%),
+
+      radial-gradient(ellipse 55% 45% at 92% 20%, rgba(237, 230, 250, 0.85), transparent 52%),
+
+      radial-gradient(ellipse 45% 40% at 70% 85%, rgba(232, 120, 90, 0.18), transparent 55%),
+
+      radial-gradient(ellipse 35% 30% at 20% 80%, rgba(212, 168, 74, 0.16), transparent 50%);
+
+  }
+
+
+
+  .dark .hero-romantic-panel::before {
+
+    background:
+
+      radial-gradient(ellipse 60% 50% at 10% 30%, rgba(232, 165, 176, 0.12), transparent 55%),
+
+      radial-gradient(ellipse 50% 40% at 90% 15%, rgba(185, 174, 222, 0.1), transparent 50%);
 
   }
 
@@ -556,13 +604,13 @@
 
     border-color: rgba(212, 120, 138, 0.2);
 
-    background: linear-gradient(145deg, rgba(255, 252, 250, 0.95), rgba(253, 232, 236, 0.45));
+    background: linear-gradient(145deg, rgba(255, 252, 250, 0.96), rgba(253, 232, 236, 0.55), rgba(237, 230, 250, 0.35));
 
     box-shadow:
 
-      0 20px 48px rgba(212, 120, 138, 0.1),
+      0 20px 48px rgba(212, 120, 138, 0.14),
 
-      0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+      0 0 0 1px rgba(255, 255, 255, 0.55) inset;
 
   }
 
@@ -666,7 +714,21 @@
 
     @apply font-semibold italic;
 
-    background: linear-gradient(135deg, #D4788A 0%, #9B87C8 48%, #E8785A 100%);
+    background: linear-gradient(135deg, #D4788A 0%, #9B87C8 42%, #E8785A 78%, #D4A84A 100%);
+
+    -webkit-background-clip: text;
+
+    background-clip: text;
+
+    color: transparent;
+
+  }
+
+
+
+  .dark .text-display-accent {
+
+    background: linear-gradient(135deg, #E8A5B0 0%, #B9AEDE 45%, #F2926F 80%, #E9C46A 100%);
 
     -webkit-background-clip: text;
 

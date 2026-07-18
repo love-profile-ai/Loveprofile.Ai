@@ -27,6 +27,7 @@ export async function GET() {
         googleEnabled: false,
         emailEnabled: false,
         googleClientConfigured: false,
+        googleConfigured: false,
         message:
           "Supabase environment variables are missing on the server.",
       },
@@ -36,6 +37,8 @@ export async function GET() {
 
   const projectRef = new URL(env.url).hostname.split(".")[0];
   const googleCallbackUrl = `${env.url}/auth/v1/callback`;
+  const siteUrl =
+    process.env.OPENROUTER_SITE_URL?.trim() || "http://localhost:3000";
 
   try {
     const settingsRes = await fetch(`${env.url}/auth/v1/settings`, {
@@ -50,7 +53,9 @@ export async function GET() {
     const googleEnabled = Boolean(settings.external?.google);
     const emailEnabled = Boolean(settings.external?.email);
 
+    let googleClientId: string | null = null;
     let googleClientConfigured = false;
+
     if (googleEnabled) {
       const authorizeRes = await fetch(
         `${env.url}/auth/v1/authorize?provider=google`,
@@ -66,25 +71,44 @@ export async function GET() {
 
       const location = authorizeRes.headers.get("location");
       if (location) {
-        const clientId = new URL(location).searchParams.get("client_id");
-        googleClientConfigured = looksLikeGoogleClientId(clientId);
+        googleClientId = new URL(location).searchParams.get("client_id");
+        googleClientConfigured = looksLikeGoogleClientId(googleClientId);
       }
     }
 
-    const configured = googleEnabled && googleClientConfigured;
+    const googleConfigured = googleEnabled && googleClientConfigured;
+    const configured = googleConfigured || emailEnabled;
+
+    let message = "Sign-in is ready.";
+    if (!configured) {
+      message =
+        "Enable Google or Email sign-in in Supabase → Authentication → Providers.";
+    } else if (googleEnabled && !googleClientConfigured) {
+      message =
+        "Google is enabled in Supabase but the Client ID is invalid. Replace it with a Google Cloud OAuth Client ID ending in .apps.googleusercontent.com";
+    } else if (!googleConfigured && emailEnabled) {
+      message = "Email magic links are ready.";
+    } else if (googleConfigured && !emailEnabled) {
+      message = "Google sign-in is ready.";
+    } else {
+      message = "Google and email sign-in are ready.";
+    }
 
     return NextResponse.json({
       configured,
       googleEnabled,
       emailEnabled,
       googleClientConfigured,
+      googleConfigured,
+      googleClientIdPreview: googleClientId
+        ? googleClientId.length > 24
+          ? `${googleClientId.slice(0, 12)}…${googleClientId.slice(-12)}`
+          : googleClientId
+        : null,
       projectRef,
       googleCallbackUrl,
-      message: configured
-        ? "Google sign-in is configured."
-        : !googleEnabled
-          ? "Enable Google in Supabase → Authentication → Providers."
-          : "Google is enabled in Supabase but the OAuth Client ID is missing or invalid. Add your Google Cloud OAuth credentials in Supabase.",
+      siteUrl,
+      message,
     });
   } catch (error) {
     return NextResponse.json(
@@ -93,12 +117,14 @@ export async function GET() {
         googleEnabled: false,
         emailEnabled: false,
         googleClientConfigured: false,
+        googleConfigured: false,
         projectRef,
         googleCallbackUrl,
+        siteUrl,
         message:
           error instanceof Error
             ? error.message
-            : "Could not verify Google auth settings.",
+            : "Could not verify auth settings.",
       },
       { status: 500 }
     );

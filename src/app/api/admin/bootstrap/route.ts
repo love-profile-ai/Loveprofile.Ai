@@ -28,6 +28,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Sign in required" }, { status: 401 });
   }
 
+  if (
+    user.email?.includes("@guest.loveprofile.ai") ||
+    user.user_metadata?.guest
+  ) {
+    return NextResponse.json(
+      { error: "Guest accounts cannot become admin. Sign in with Google or email." },
+      { status: 403 }
+    );
+  }
+
   const admin = createAdminClient();
 
   const { count, error: countError } = await admin

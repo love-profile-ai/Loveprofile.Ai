@@ -11,8 +11,8 @@ export async function GET(request: Request) {
   if (!user) {
     return NextResponse.json({
       authenticated: false,
-      allowed: true,
-      role: "guest",
+      allowed: false,
+      role: "anonymous",
       approval_status: "anonymous",
       maintenance: { enabled: false },
     });
@@ -35,7 +35,10 @@ export async function GET(request: Request) {
   const role = profile?.role ?? "user";
   const approvalStatus = profile?.approval_status ?? "pending";
   const isAdmin = role === "admin" && approvalStatus === "approved";
-  const isGuest = Boolean(profile?.is_guest) || user.email?.includes("@guest.loveprofile.ai");
+  const isGuest =
+    Boolean(profile?.is_guest) ||
+    user.email?.includes("@guest.loveprofile.ai") ||
+    Boolean(user.user_metadata?.guest);
   const blockedStatuses = new Set(["rejected", "blocked", "suspended", "inactive"]);
   const maintenanceValue = (maintenance?.value ?? {}) as {
     enabled?: boolean;
@@ -43,6 +46,18 @@ export async function GET(request: Request) {
     estimatedReturn?: string;
     contactEmail?: string;
   };
+
+  if (isGuest) {
+    return NextResponse.json({
+      authenticated: true,
+      allowed: false,
+      role,
+      is_guest: true,
+      approval_status: "guest_disabled",
+      admin_notes: profile?.admin_notes ?? null,
+      maintenance: maintenanceValue,
+    });
+  }
 
   const allowed =
     !blockedStatuses.has(approvalStatus) &&
@@ -67,7 +82,7 @@ export async function GET(request: Request) {
     authenticated: true,
     allowed,
     role,
-    is_guest: isGuest,
+    is_guest: false,
     approval_status: approvalStatus,
     admin_notes: profile?.admin_notes ?? null,
     maintenance: maintenanceValue,

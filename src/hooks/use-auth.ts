@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 
 export type AuthResult =
-  | { ok: true; method?: "guest" | "oauth" | "email" | "existing" }
+  | { ok: true; method?: "oauth" | "email" | "existing" }
   | { ok: false; error: string };
 
 export function isGuestEmail(email: string | null | undefined): boolean {

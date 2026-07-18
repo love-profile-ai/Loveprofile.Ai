@@ -2,13 +2,14 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
+import { AuthGuard } from "@/components/auth/auth-guard";
 import { AppHeader } from "@/components/shared/app-header";
 import { PageShell } from "@/components/shared/page-shell";
 import { ReportDashboard } from "@/components/report/report-dashboard";
 import { getLocalReport, toReportRecord } from "@/lib/local-report";
 import type { ReportRecord } from "@/types/report";
 
-export default function LocalReportPage({
+function LocalReportContent({
   params,
 }: {
   params: Promise<{ reportId: string }>;
@@ -29,24 +30,29 @@ export default function LocalReportPage({
       <PageShell wide className="relative pb-16">
         <AppHeader />
         <main>
-        {!report && (
-          <div className="py-24 text-center">
-            <p className="font-medium">Report not found or session expired.</p>
-            <Link href="/analyze" className="mt-4 inline-block text-primary hover:underline">
-              Start a new analysis
-            </Link>
-          </div>
-        )}
-        {report && (
-          <>
-            <p className="text-label mb-4 text-primary/60">
-              Saved on this device only — sign in from the dashboard to keep reports in the cloud
-            </p>
-            <ReportDashboard report={report} />
-          </>
-        )}
+          {!report && (
+            <div className="py-24 text-center">
+              <p className="font-medium">Report not found or session expired.</p>
+              <Link href="/analyze" className="mt-4 inline-block text-primary hover:underline">
+                Start a new analysis
+              </Link>
+            </div>
+          )}
+          {report && <ReportDashboard report={report} />}
         </main>
       </PageShell>
     </div>
+  );
+}
+
+export default function LocalReportPage({
+  params,
+}: {
+  params: Promise<{ reportId: string }>;
+}) {
+  return (
+    <AuthGuard redirectTo="/login">
+      <LocalReportContent params={params} />
+    </AuthGuard>
   );
 }

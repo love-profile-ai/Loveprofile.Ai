@@ -30,11 +30,11 @@ const paths = [
     icon: Heart,
     title: "Do I Love Someone?",
     description:
-      "Explore your own feelings — love, crush, admiration, or friendship",
+      "For when you stare at the ceiling wondering if it's love, crush, or delulu.",
     bullets: [
-      "Clarify what you're really feeling",
-      "Spot emotional patterns & attachment",
-      "Understand if it's love, crush, or admiration",
+      "Name the feeling without a TED Talk",
+      "Spot your emotional patterns (yes, all of them)",
+      "Love vs crush vs admiration — pick your fighter",
     ],
     accent: "accent-rose",
     gradient: "from-primary/14 via-lavender/8 to-transparent",
@@ -43,11 +43,11 @@ const paths = [
     id: "someone_likes_me" as const,
     icon: Eye,
     title: "Does Someone Love Me?",
-    description: "Decode their signals, behavior, and emotional connection",
+    description: "For decoding their texts, silences, and suspiciously cute behavior.",
     bullets: [
-      "Read mixed signals with clarity",
-      "See green flags & red flags",
-      "Gauge their level of interest",
+      "Translate mixed signals into plain English",
+      "Green flags, red flags, beige flags",
+      "Interest level: probably not 'just friends'",
     ],
     accent: "accent-coral",
     gradient: "from-coral/12 via-gold/8 to-transparent",
@@ -57,18 +57,18 @@ const paths = [
 const steps = [
   {
     icon: MessageCircleHeart,
-    title: "Answer honestly",
-    description: "~17 adaptive questions tailored to your situation",
+    title: "Tell the truth (ish)",
+    description: "~17 adaptive questions — no trick questions, just vibes",
   },
   {
     icon: Brain,
-    title: "AI analyzes patterns",
-    description: "Communication, trust, reciprocity & emotional signals",
+    title: "AI does the math",
+    description: "Trust, reciprocity, communication chaos — analyzed",
   },
   {
     icon: Sparkles,
-    title: "Get your report",
-    description: "Personalized insights, flags, and thoughtful advice",
+    title: "Get the report",
+    description: "Colorful insights, flags, and advice with personality",
   },
 ];
 
@@ -89,7 +89,7 @@ export function AnalyzePathSection({
   return (
     <div className="relative">
       <div className="pointer-events-none absolute -bottom-32 left-1/2 -z-10 h-96 w-[120%] -translate-x-1/2 rounded-[100%] bg-gradient-to-t from-primary/10 via-gold/10 to-transparent blur-3xl" />
-      <div className="pointer-events-none absolute bottom-[18%] right-[8%] -z-10 hidden size-64 rounded-full bg-rose-200/25 blur-3xl lg:block" />
+      <div className="pointer-events-none absolute bottom-[18%] right-[8%] -z-10 hidden size-64 rounded-full bg-blush-wash/50 blur-3xl lg:block dark:bg-primary/10" />
       <div className="pointer-events-none absolute bottom-[28%] left-[6%] -z-10 hidden size-48 rounded-full bg-primary/10 blur-3xl lg:block" />
 
       <div className="relative mx-auto w-full max-w-6xl px-4 pb-20 pt-2 sm:px-6">
@@ -108,11 +108,11 @@ export function AnalyzePathSection({
             Step 1 · Choose your path
           </span>
           <h1 className="text-heading-page mt-5">
-            Choose the lens for your <em className="text-display-accent">reflection.</em>
+            Pick your <em className="text-display-accent">drama arc.</em>
           </h1>
           <p className="text-lead mx-auto mt-4 max-w-2xl">
-            Choose the path that best describes you. Questions will adapt to your
-            answer and build a report unique to your story.
+            Choose a path. Answer honestly-ish. Get a report that feels like gossip
+            from a smart friend — not a courtroom cross-exam.
           </p>
         </motion.div>
 
@@ -127,7 +127,7 @@ export function AnalyzePathSection({
               whileTap={{ scale: 0.99 }}
             >
               <Card
-                className="premium-card group relative h-full cursor-pointer overflow-hidden p-2"
+                className={`premium-card group relative h-full cursor-pointer overflow-hidden p-2 ${path.accent}`}
                 onClick={() => !loading && onStart(path.id)}
               >
                 <div
@@ -168,7 +168,7 @@ export function AnalyzePathSection({
                       <Loader2 className="size-4 animate-spin" />
                     ) : (
                       <>
-                        Start
+                        Start the chaos
                         <ArrowRight className="ml-1.5 size-4" />
                       </>
                     )}
@@ -185,7 +185,7 @@ export function AnalyzePathSection({
           transition={{ delay: 0.35 }}
           className="text-meta-footer mt-10 text-center"
         >
-          ~17 Questions · ~5 Minutes · Auto-saved
+          ~17 Questions · ~5 Minutes · Admin-approved members only
         </motion.p>
 
         <motion.section
@@ -199,7 +199,7 @@ export function AnalyzePathSection({
               How it <em className="text-display-accent">works</em>
             </h2>
             <p className="text-lead mx-auto mt-3 max-w-lg text-center">
-              A thoughtful flow designed to help you reflect — not just score you.
+              A playful flow for romantic overthinkers — not a job interview.
             </p>
 
             <div className="mt-10 grid gap-6 sm:grid-cols-3">
@@ -250,8 +250,8 @@ export function AnalyzePathSection({
           className="mt-10 rounded-2xl border border-dashed border-primary/25 bg-primary/5 px-6 py-5 text-center"
         >
           <p className="text-sm font-medium text-foreground/65">
-            Your answers stay private. Take your time — you can pause and come back
-            anytime.
+            Your answers stay private. Take your time — we are not timing your
+            emotional spiral.
           </p>
         </motion.div>
       </div>

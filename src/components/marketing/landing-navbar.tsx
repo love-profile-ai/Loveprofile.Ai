@@ -38,10 +38,7 @@ export function LandingNavbar() {
             {link.label}
           </Link>
         ))}
-        <Link
-          href="/dashboard"
-          className="text-sm font-semibold text-foreground/55 transition-colors hover:text-primary"
-        >
+        <Link href="/login?next=/dashboard" className="text-sm font-semibold text-foreground/55 transition-colors hover:text-primary">
           Dashboard
         </Link>
       </nav>
@@ -54,9 +51,9 @@ export function LandingNavbar() {
         >
           Sign in
         </Link>
-        <Link href="/login?next=/disclaimer">
+        <Link href="/login">
           <Button size="sm" className="btn-cta rounded-full px-5 text-xs">
-            Begin
+            Sign in
           </Button>
         </Link>
       </div>

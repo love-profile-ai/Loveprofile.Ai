@@ -35,6 +35,7 @@ if (!env?.NEXT_PUBLIC_SUPABASE_URL || !env?.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
 
 const url = env.NEXT_PUBLIC_SUPABASE_URL;
 const key = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const googleCallbackUrl = `${url}/auth/v1/callback`;
 
 const res = await fetch(`${url}/auth/v1/settings`, {
   headers: {
@@ -60,12 +61,24 @@ const location = oauth.headers.get("location");
 if (location) {
   const authUrl = new URL(location);
   const clientId = authUrl.searchParams.get("client_id") ?? "";
-  console.log("oauth_client_id_present:", clientId.length > 0);
-  console.log("oauth_client_id_suffix:", clientId.slice(-20));
-  console.log(
-    "google_redirect_uri:",
-    authUrl.searchParams.get("redirect_uri") ?? "(missing)"
-  );
+  const valid = clientId.endsWith(".apps.googleusercontent.com");
+  console.log("google_client_id:", clientId || "(missing)");
+  console.log("google_client_id_valid:", valid);
+  console.log("google_redirect_uri:", googleCallbackUrl);
+  if (!valid && clientId) {
+    console.log("");
+    console.log("FIX: Supabase has an invalid Google Client ID.");
+    console.log("1. Google Cloud Console → APIs & Services → Credentials");
+    console.log("2. Create OAuth Client ID (Web application)");
+    console.log("3. Authorized redirect URI:", googleCallbackUrl);
+    console.log("4. Supabase Dashboard → Authentication → Providers → Google");
+    console.log("   Paste Client ID + Secret (must end with .apps.googleusercontent.com)");
+    console.log("");
+    console.log("Or add to .env.local and run: npm run auth:configure-google");
+    console.log("- SUPABASE_ACCESS_TOKEN");
+    console.log("- GOOGLE_CLIENT_ID");
+    console.log("- GOOGLE_CLIENT_SECRET");
+  }
 } else {
   console.log("oauth_authorize_status:", oauth.status);
 }

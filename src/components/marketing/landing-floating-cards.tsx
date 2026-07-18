@@ -37,10 +37,10 @@ export function LandingFloatingCards() {
         delay={0.1}
         className="absolute left-[4%] top-[18%] w-52 xl:left-[8%] xl:w-56"
       >
-        <div className="relative rotate-[-3deg] rounded-xl bg-gradient-to-br from-primary/20 via-pink-100 to-rose-50 p-4 shadow-lg shadow-primary/15 dark:via-primary/15 dark:to-primary/5">
-          <span className="absolute -right-1 -top-1 size-3 rounded-full bg-primary shadow-sm" />
-          <p className="text-xs font-semibold leading-relaxed text-foreground/75">
-            Reflect on trust, communication, and the signals that matter most to you.
+        <div className="relative rotate-[-3deg] rounded-xl bg-gradient-to-br from-primary/25 via-lavender/15 to-coral/12 p-4 shadow-lg shadow-primary/20 dark:via-primary/15 dark:to-primary/5">
+          <span className="absolute -right-1 -top-1 size-3 rounded-full bg-coral shadow-sm" />
+          <p className="text-xs font-semibold leading-relaxed text-foreground/78">
+            &ldquo;Is it love or am I just bored?&rdquo; — finally, a website that gets it.
           </p>
         </div>
         <div className="absolute -bottom-3 -right-3 flex size-10 items-center justify-center rounded-xl border border-primary/20 bg-white shadow-md dark:bg-card">
@@ -54,15 +54,15 @@ export function LandingFloatingCards() {
       >
         <div className="p-4">
           <div className="mb-3 flex items-center gap-2">
-            <Clock className="size-4 text-primary" />
+            <Clock className="size-4 text-coral" />
             <span className="text-xs font-bold uppercase tracking-wider text-foreground/50">
               Your session
             </span>
           </div>
-          <p className="font-display text-sm font-bold text-foreground">Quick assessment</p>
+          <p className="font-display text-sm font-bold text-foreground">Quick chaos check</p>
           <p className="mt-1 text-xs font-medium text-foreground/55">~17 questions · ~5 min</p>
-          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-primary/10">
-            <div className="h-full w-3/5 rounded-full bg-gradient-to-r from-primary/50 to-pink-400/70" />
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-primary/12">
+            <div className="h-full w-3/5 rounded-full bg-gradient-to-r from-primary via-lavender to-coral" />
           </div>
         </div>
       </FloatCard>
@@ -73,12 +73,12 @@ export function LandingFloatingCards() {
       >
         <div className="p-4">
           <p className="text-xs font-bold uppercase tracking-wider text-foreground/50">
-            Today&apos;s focus
+            Today&apos;s vibe scan
           </p>
           <ul className="mt-3 space-y-2.5">
             {[
-              { label: "Communication patterns", pct: 72 },
-              { label: "Emotional signals", pct: 58 },
+              { label: "Texting patterns", pct: 72 },
+              { label: "Emotional math", pct: 58 },
             ].map((item) => (
               <li key={item.label}>
                 <div className="flex items-center justify-between gap-2">
@@ -87,7 +87,7 @@ export function LandingFloatingCards() {
                 </div>
                 <div className="mt-1 h-1 overflow-hidden rounded-full bg-primary/10">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-primary/45 to-pink-400/60"
+                    className="h-full rounded-full bg-gradient-to-r from-primary/55 via-lavender/50 to-coral/55"
                     style={{ width: `${item.pct}%` }}
                   />
                 </div>
@@ -103,7 +103,7 @@ export function LandingFloatingCards() {
       >
         <div className="p-4">
           <div className="mb-3 flex items-center gap-2">
-            <Sparkles className="size-4 text-primary" />
+            <Sparkles className="size-4 text-gold" />
             <span className="text-xs font-bold uppercase tracking-wider text-foreground/50">
               Report includes
             </span>
@@ -119,7 +119,7 @@ export function LandingFloatingCards() {
             ))}
           </div>
           <p className="mt-3 text-xs font-medium text-foreground/55">
-            Green flags, advice & outlook
+            Flags, gossip-grade insights & outlook
           </p>
         </div>
       </FloatCard>

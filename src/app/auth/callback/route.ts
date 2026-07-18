@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 function safeNextPath(next: string | null): string {
   if (!next || !next.startsWith("/") || next.startsWith("//")) {
@@ -66,27 +67,66 @@ export async function GET(request: NextRequest) {
       `${baseUrl}/login?next=${encodeURIComponent(next)}&error=${encodeURIComponent(msg)}`
     );
 
+  let response: NextResponse = successResponse;
+
   const supabase = createServerClient(url, anonKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet) {
-        // Write every auth cookie (access_token, refresh_token, etc.)
-        // directly onto the redirect response the browser will receive.
         cookiesToSet.forEach(({ name, value, options }) =>
-          successResponse.cookies.set(name, value, options)
+          response.cookies.set(name, value, options)
         );
       },
     },
   });
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
     console.error("Auth callback — exchangeCodeForSession failed:", error.message);
     return errorResponse("Sign-in link expired or is invalid. Please try again.");
   }
 
-  return successResponse;
+  const user = data.user;
+  if (
+    user?.email?.includes("@guest.loveprofile.ai") ||
+    user.user_metadata?.guest
+  ) {
+    response = errorResponse(
+      "Guest access is disabled. Please sign in with Google or email."
+    );
+    await supabase.auth.signOut();
+    return response;
+  }
+
+  try {
+    const admin = createAdminClient();
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("role, approval_status")
+      .eq("id", user.id)
+      .single();
+
+    const role = profile?.role ?? "user";
+    const approvalStatus = profile?.approval_status ?? "pending";
+    const isAdmin = role === "admin" && approvalStatus === "approved";
+    const approved = isAdmin || approvalStatus === "approved";
+
+    if (!approved) {
+      response = NextResponse.redirect(
+        `${baseUrl}/login?pending=1&next=${encodeURIComponent(next)}`
+      );
+      return response;
+    }
+  } catch (error) {
+    console.error("Auth callback — approval check failed:", error);
+    response = NextResponse.redirect(
+      `${baseUrl}/login?pending=1&next=${encodeURIComponent(next)}`
+    );
+    return response;
+  }
+
+  return response;
 }

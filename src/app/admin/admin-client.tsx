@@ -28,6 +28,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { SITE_NAME } from "@/lib/site";
+import { AdminGoogleOAuthPanel } from "@/app/admin/admin-google-oauth-panel";
 
 type Tab =
   | "dashboard"
@@ -878,6 +879,7 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
 
               {tab === "settings" && (
                 <section className="grid gap-5 lg:grid-cols-2">
+                  <AdminGoogleOAuthPanel />
                   {["general", "maintenance", "theme"].map((key) => (
                     <div key={key} className="premium-card p-6">
                       <p className="text-label">{key}</p>
