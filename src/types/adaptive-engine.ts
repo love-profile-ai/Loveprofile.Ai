@@ -148,6 +148,7 @@ export type EngineDecisionReason =
   | "max_questions_reached"
   | "no_eligible_questions"
   | "needs_clarification"
+  | "static_questionnaire_complete"
   | "continue";
 
 export interface EngineDecision {

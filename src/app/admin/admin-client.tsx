@@ -173,6 +173,10 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
     logs: [],
     notifications: [],
   });
+  const [approveEmail, setApproveEmail] = useState("");
+  const [approveMessage, setApproveMessage] = useState<string | null>(null);
+  const [approveError, setApproveError] = useState<string | null>(null);
+  const [approvingEmail, setApprovingEmail] = useState(false);
 
   async function loadAll() {
     setLoading(true);
@@ -281,6 +285,37 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userIds, action }),
     });
+    await loadAll();
+  }
+
+  async function approveUserByEmail() {
+    const email = approveEmail.trim();
+    if (!email) {
+      setApproveError("Enter an email address to approve.");
+      setApproveMessage(null);
+      return;
+    }
+
+    setApprovingEmail(true);
+    setApproveError(null);
+    setApproveMessage(null);
+
+    const res = await fetch("/api/admin/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, action: "approve" }),
+    });
+    const data = (await res.json().catch(() => ({}))) as { error?: string };
+
+    setApprovingEmail(false);
+
+    if (!res.ok) {
+      setApproveError(data.error ?? "Could not approve that email.");
+      return;
+    }
+
+    setApproveMessage(`${email} approved. They can sign in now.`);
+    setApproveEmail("");
     await loadAll();
   }
 
@@ -457,6 +492,47 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
                     </div>
                   </div>
 
+                  <div className="premium-card p-6">
+                    <p className="text-label">Quick approval</p>
+                    <h2 className="font-display text-2xl font-semibold">Approve user by email</h2>
+                    <p className="mt-2 text-sm font-medium text-foreground/55">
+                      Type a user&apos;s email and approve them instantly.
+                    </p>
+                    <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                      <input
+                        type="email"
+                        value={approveEmail}
+                        onChange={(e) => setApproveEmail(e.target.value)}
+                        placeholder="user@email.com"
+                        className="premium-input h-11 flex-1 rounded-full"
+                      />
+                      <Button
+                        className="btn-cta h-11 px-6"
+                        disabled={approvingEmail}
+                        onClick={approveUserByEmail}
+                      >
+                        {approvingEmail ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <>
+                            <CheckCircle2 className="mr-1 size-4" />
+                            Approve email
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    {approveMessage && (
+                      <p className="mt-3 text-sm font-semibold text-emerald-600 dark:text-emerald-300">
+                        {approveMessage}
+                      </p>
+                    )}
+                    {approveError && (
+                      <p className="mt-3 text-sm font-semibold text-destructive">
+                        {approveError}
+                      </p>
+                    )}
+                  </div>
+
                   {pendingUsers.length > 0 && (
                     <div className="premium-card p-6">
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -475,6 +551,7 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
                           Open Users tab
                         </Button>
                       </div>
+
                       <div className="mt-5 space-y-3">
                         {pendingUsers.slice(0, 5).map((user) => (
                           <div
@@ -508,6 +585,46 @@ export function AdminClient({ adminEmail }: { adminEmail: string }) {
 
               {tab === "users" && (
                 <section className="premium-card overflow-hidden">
+                  <div className="border-b border-primary/10 p-5">
+                    <p className="text-label">Quick approval</p>
+                    <h2 className="font-display text-2xl font-semibold">Approve user by email</h2>
+                    <p className="mt-2 text-sm font-medium text-foreground/55">
+                      Enter a registered email to grant access immediately.
+                    </p>
+                    <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                      <input
+                        type="email"
+                        value={approveEmail}
+                        onChange={(e) => setApproveEmail(e.target.value)}
+                        placeholder="user@email.com"
+                        className="premium-input h-11 flex-1 rounded-full"
+                      />
+                      <Button
+                        className="btn-cta h-11 px-6"
+                        disabled={approvingEmail}
+                        onClick={approveUserByEmail}
+                      >
+                        {approvingEmail ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <>
+                            <CheckCircle2 className="mr-1 size-4" />
+                            Approve email
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    {approveMessage && (
+                      <p className="mt-3 text-sm font-semibold text-emerald-600 dark:text-emerald-300">
+                        {approveMessage}
+                      </p>
+                    )}
+                    {approveError && (
+                      <p className="mt-3 text-sm font-semibold text-destructive">
+                        {approveError}
+                      </p>
+                    )}
+                  </div>
                   <div className="flex flex-col gap-4 border-b border-primary/10 p-5 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="text-label">User Management</p>

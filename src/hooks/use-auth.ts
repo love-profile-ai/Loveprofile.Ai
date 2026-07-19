@@ -68,18 +68,30 @@ export async function signInWithEmail(
   email: string,
   next = "/disclaimer"
 ): Promise<AuthResult> {
-  const supabase = createClient();
-  const emailRedirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo },
+  const res = await fetch("/api/auth/email", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email.trim(), next }),
   });
 
-  if (error) {
+  const data = (await res.json().catch(() => ({}))) as {
+    ok?: boolean;
+    error?: string;
+    mode?: "email" | "redirect";
+    redirectUrl?: string;
+    message?: string;
+  };
+
+  if (!res.ok || !data.ok) {
     return {
       ok: false,
-      error: normalizeAuthErrorMessage(error.message),
+      error: normalizeAuthErrorMessage(data.error ?? "Could not send magic link."),
     };
+  }
+
+  if (data.mode === "redirect" && data.redirectUrl) {
+    window.location.assign(data.redirectUrl);
+    return { ok: true, method: "email" };
   }
 
   return { ok: true, method: "email" };

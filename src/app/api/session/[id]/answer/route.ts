@@ -31,7 +31,7 @@ import { processAnswer, serializeAnswerValue } from "@/lib/engine/runner";
 import { updateAssessmentSummary } from "@/lib/engine/assessment-summary";
 
 import { evaluateRules } from "@/lib/engine/rules";
-
+import { STATIC_QUESTIONNAIRE_ONLY } from "@/lib/engine/constants";
 import { resolveNextQuestion } from "@/lib/engine/selectQuestionLlm";
 
 import {
@@ -386,7 +386,30 @@ export async function POST(
 
     }
 
+    if (STATIC_QUESTIONNAIRE_ONLY) {
+      const decision: EngineDecision = {
+        should_end: true,
+        reason: "static_questionnaire_complete",
+        priority_dimensions: [],
+      };
 
+      await supabase
+        .from("assessment_sessions")
+        .update({ status: "completed", question_count: newCount })
+        .eq("id", sessionId);
+
+      return NextResponse.json({
+        finished: true,
+        sessionId,
+        decision,
+        profile: foundationResult.profile,
+        assessmentSummary: assessment_summary,
+        confidence: foundationResult.profile.confidence_score,
+        questionNumber: newCount,
+        phase: "foundation" as const,
+        scoreDeltas: foundationResult.score_deltas,
+      } satisfies AnswerResponse);
+    }
 
     const decision = evaluateRules(foundationResult.profile);
 

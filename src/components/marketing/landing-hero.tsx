@@ -4,9 +4,9 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { LandingNavbar } from "@/components/marketing/landing-navbar";
-import { LandingFloatingCards } from "@/components/marketing/landing-floating-cards";
 import { Footer } from "@/components/marketing/footer";
 import { FadeInView } from "@/components/motion/fade-in-view";
+import { PageBackdrop } from "@/components/motion/page-backdrop";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -122,15 +122,13 @@ const faqs = [
 
 export function LandingHero() {
   return (
-    <div className="landing-canvas">
-      <div className="dot-grid pointer-events-none absolute inset-0 -z-10" />
-      <div className="page-glow pointer-events-none absolute inset-0 -z-10" />
+    <div className="landing-canvas luxury-grain">
+      <PageBackdrop intensity="medium" />
       <LandingNavbar />
 
       <main className="relative mx-auto w-full max-w-6xl px-4 sm:px-6">
         {/* Hero — asymmetrical */}
         <section className="hero-romantic-panel grid items-center gap-8 py-16 lg:grid-cols-[1fr_1.1fr] lg:gap-4 lg:py-24">
-          <LandingFloatingCards />
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

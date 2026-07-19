@@ -9,6 +9,7 @@ import type {
   UserProfile,
 } from "@/types/adaptive-engine";
 import { updateProfile } from "./updateProfile";
+import { STATIC_QUESTIONNAIRE_ONLY } from "./constants";
 import { evaluateRules } from "./rules";
 import { resolveNextQuestion } from "./selectQuestionLlm";
 import { getSeedQuestionsForPath } from "./seed-questions";
@@ -178,6 +179,18 @@ export async function getAdaptiveQuestionAfterFoundation(input: {
   nextQuestion: Question | null;
   finished: boolean;
 }> {
+  if (STATIC_QUESTIONNAIRE_ONLY) {
+    return {
+      decision: {
+        should_end: true,
+        reason: "static_questionnaire_complete",
+        priority_dimensions: [],
+      },
+      nextQuestion: null,
+      finished: true,
+    };
+  }
+
   const decision = evaluateRules(input.profile);
   const selection = await resolveNextQuestion({
     questions: input.questions,

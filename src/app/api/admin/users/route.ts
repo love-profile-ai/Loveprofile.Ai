@@ -88,13 +88,39 @@ export async function PATCH(request: Request) {
 
   const body = (await request.json()) as {
     userIds?: string[];
+    email?: string;
     action?: string;
     admin_notes?: string;
   };
 
-  const userIds = body.userIds?.filter(Boolean) ?? [];
+  let userIds = body.userIds?.filter(Boolean) ?? [];
+  if (!userIds.length && body.email?.trim() && body.action === "approve") {
+    const admin = createAdminClient();
+    const { data: profile, error: lookupError } = await admin
+      .from("profiles")
+      .select("id,email,approval_status")
+      .ilike("email", body.email.trim())
+      .maybeSingle();
+
+    if (lookupError) {
+      return NextResponse.json({ error: lookupError.message }, { status: 500 });
+    }
+
+    if (!profile) {
+      return NextResponse.json(
+        { error: `No user found with email ${body.email.trim()}` },
+        { status: 404 }
+      );
+    }
+
+    userIds = [profile.id];
+  }
+
   if (!userIds.length || !body.action) {
-    return NextResponse.json({ error: "Missing userIds or action" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing userIds or email, and action" },
+      { status: 400 }
+    );
   }
 
   const admin = createAdminClient();

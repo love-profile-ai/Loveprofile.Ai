@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { Loader2 } from "lucide-react";
+import { PremiumLoader } from "@/components/motion/premium-loader";
 
 export function AuthGuard({
   children,
@@ -74,11 +74,7 @@ export function AuthGuard({
   }
 
   if (!ready || !authed) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="size-8 animate-spin text-primary" />
-      </div>
-    );
+    return <PremiumLoader className="min-h-screen" label="Verifying session" />;
   }
 
   return <>{children}</>;

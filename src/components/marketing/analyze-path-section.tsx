@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { motionSpring } from "@/lib/motion-presets";
 import {
   Card,
   CardContent,
@@ -58,7 +59,7 @@ const steps = [
   {
     icon: MessageCircleHeart,
     title: "Tell the truth (ish)",
-    description: "~17 adaptive questions — no trick questions, just vibes",
+    description: "8 guided questions — no trick questions, just vibes",
   },
   {
     icon: Brain,
@@ -122,9 +123,9 @@ export function AnalyzePathSection({
               key={path.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + i * 0.08, duration: 0.45 }}
-              whileHover={{ y: -3 }}
-              whileTap={{ scale: 0.99 }}
+              transition={{ delay: 0.1 + i * 0.08, ...motionSpring }}
+              whileHover={{ y: -4, scale: 1.01 }}
+              whileTap={{ scale: 0.985 }}
             >
               <Card
                 className={`premium-card group relative h-full cursor-pointer overflow-hidden p-2 ${path.accent}`}

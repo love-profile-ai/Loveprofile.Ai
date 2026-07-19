@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { signInWithEmail, signInWithGoogle } from "@/hooks/use-auth";
+import { signInWithEmail } from "@/hooks/use-auth";
 import { Loader2, Mail, Shield, Sparkles } from "lucide-react";
 import { SITE_NAME } from "@/lib/site";
 
@@ -23,10 +23,16 @@ function friendlyAuthError(raw: string | null): string | null {
   if (!raw) return null;
   const lower = raw.toLowerCase();
   if (lower.includes("invalid_client") || lower.includes("oauth client was not found")) {
-    return "Google OAuth is misconfigured in Supabase. The site admin must add a valid Google Cloud Client ID and Secret under Authentication → Providers → Google.";
+    return "Google OAuth is misconfigured in Supabase (invalid Client ID). Use email sign-in below, or fix it at /setup/google-oauth.";
   }
   if (lower.includes("guest access is disabled")) {
     return "Guest mode is off. Sign in with Google or email and wait for admin approval.";
+  }
+  if (lower.includes("missing sign-in code")) {
+    return "Sign-in link could not be verified. Please click Send magic link again.";
+  }
+  if (lower.includes("rate limit") || lower.includes("too many")) {
+    return "Too many sign-in emails were sent. Wait about 60 minutes and try again, or fix Google sign-in at /setup/google-oauth.";
   }
   return raw;
 }
@@ -34,10 +40,9 @@ function friendlyAuthError(raw: string | null): string | null {
 function suggestEmailFix(email: string): string | null {
   const trimmed = email.trim().toLowerCase();
   const typoMap: Record<string, string> = {
-    "@gamil.com": "@gmail.com",
-    "@gmial.com": "@gmail.com",
-    "@gmai.com": "@gmail.com",
-    "@gmail.co": "@gmail.com",
+    "@gmial.com": "@gamil.com",
+    "@gmai.com": "@gamil.com",
+    "@gamil.co": "@gamil.com",
   };
 
   for (const [wrong, right] of Object.entries(typoMap)) {
@@ -59,6 +64,7 @@ export function LoginForm() {
   const [providerStatus, setProviderStatus] = useState<ProviderStatus | null>(
     null
   );
+  const [providerLoading, setProviderLoading] = useState(true);
   const [error, setError] = useState<string | null>(
     friendlyAuthError(callbackError ? decodeURIComponent(callbackError) : null)
   );
@@ -69,6 +75,9 @@ export function LoginForm() {
       .then((data: ProviderStatus) => setProviderStatus(data))
       .catch(() => {
         setProviderStatus(null);
+      })
+      .finally(() => {
+        setProviderLoading(false);
       });
   }, []);
 
@@ -78,9 +87,21 @@ export function LoginForm() {
   );
   const googleEnabled = Boolean(providerStatus?.googleEnabled);
   const emailReady = Boolean(providerStatus?.emailEnabled);
-  const anyAuthReady = providerStatus ? providerStatus.configured : true;
+  const anyAuthReady = providerStatus ? providerStatus.configured : false;
+  const googleBlocked = providerLoading || Boolean(providerStatus && (!googleEnabled || !googleReady));
 
-  async function handleGoogle() {
+  const suggestedEmail = suggestEmailFix(email);
+
+  function applySuggestedEmail() {
+    const suggested = suggestEmailFix(email);
+    if (!suggested) return;
+    setEmail(suggested);
+    setError(null);
+  }
+
+  function handleGoogle() {
+    if (providerLoading) return;
+
     if (providerStatus && !googleEnabled) {
       setError("Google sign-in is not enabled in Supabase yet.");
       return;
@@ -88,18 +109,16 @@ export function LoginForm() {
 
     if (providerStatus && googleEnabled && !googleReady) {
       setError(
-        "Google OAuth is not configured correctly yet. Ask the admin to set a valid Google Cloud Client ID in Supabase → Authentication → Providers → Google."
+        "Google OAuth is not configured correctly yet. Use email below, or fix it at /setup/google-oauth."
       );
       return;
     }
 
     setLoading("google");
     setError(null);
-    const result = await signInWithGoogle(next);
-    if (!result.ok) {
-      setError(friendlyAuthError(result.error));
-      setLoading(null);
-    }
+    window.location.assign(
+      `/api/auth/google?next=${encodeURIComponent(next)}`
+    );
   }
 
   async function handleEmail(e: React.FormEvent) {
@@ -111,7 +130,7 @@ export function LoginForm() {
 
     const suggested = suggestEmailFix(email);
     if (suggested && suggested !== email.trim().toLowerCase()) {
-      setError(`Did you mean ${suggested}? Fix the typo and try again.`);
+      setError(`Did you mean ${suggested}? Tap "Use ${suggested}" below.`);
       return;
     }
 
@@ -160,22 +179,29 @@ export function LoginForm() {
 
         {providerStatus && googleEnabled && !googleReady && (
           <p className="rounded-2xl border border-gold/25 bg-gold/10 px-4 py-3 text-sm font-semibold text-foreground/75">
-            Google sign-in is being set up by the admin. Please use email below for
-            now, or try again later.
+            Google sign-in is misconfigured right now. Use your email below, or{" "}
+            <Link href="/setup/google-oauth" className="text-primary underline">
+              fix Google OAuth setup
+            </Link>
+            .
           </p>
         )}
 
         <Button
           type="button"
           className="btn-cta h-12 w-full"
-          disabled={
-            !!loading ||
-            Boolean(providerStatus && (!googleEnabled || !googleReady))
-          }
+          disabled={!!loading || googleBlocked}
           onClick={handleGoogle}
         >
           {loading === "google" ? (
             <Loader2 className="size-4 animate-spin" />
+          ) : providerLoading ? (
+            <>
+              <Loader2 className="size-4 animate-spin" />
+              <span className="ml-2">Checking Google sign-in…</span>
+            </>
+          ) : googleBlocked ? (
+            "Continue with Google (needs setup)"
           ) : (
             "Continue with Google"
           )}
@@ -200,7 +226,7 @@ export function LoginForm() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@gmail.com"
+                placeholder="loveprofile@gamil.com"
                 className="premium-input pl-11"
                 required
                 disabled={Boolean(providerStatus && !emailReady)}
@@ -227,9 +253,21 @@ export function LoginForm() {
       </div>
 
       {error && (
-        <p className="mt-4 rounded-2xl border border-destructive/25 bg-destructive/8 px-4 py-3 text-sm font-semibold text-destructive">
-          {error}
-        </p>
+        <div className="mt-4 space-y-3">
+          <p className="rounded-2xl border border-destructive/25 bg-destructive/8 px-4 py-3 text-sm font-semibold text-destructive">
+            {error}
+          </p>
+          {suggestedEmail && suggestedEmail !== email.trim().toLowerCase() && (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 w-full border-primary/25 bg-primary/5 hover:bg-primary/10"
+              onClick={applySuggestedEmail}
+            >
+              Use {suggestedEmail}
+            </Button>
+          )}
+        </div>
       )}
 
       <div className="mt-7 flex flex-col gap-3 text-sm font-medium text-foreground/52 sm:flex-row sm:items-center sm:justify-between">

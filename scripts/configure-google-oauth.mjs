@@ -61,6 +61,13 @@ if (!accessToken || !clientId || !clientSecret || !supabaseUrl) {
 
 const projectRef = new URL(supabaseUrl).hostname.split(".")[0];
 const googleCallbackUrl = `${supabaseUrl}/auth/v1/callback`;
+const siteUrl =
+  env.OPENROUTER_SITE_URL?.trim()?.replace(/\/$/, "") || "http://localhost:3000";
+const redirectAllowList = [
+  `${siteUrl}/auth/callback`,
+  "http://localhost:3000/auth/callback",
+  "https://loveprofile-ai-loveprofile-team.vercel.app/auth/callback",
+].join(",");
 
 const res = await fetch(
   `https://api.supabase.com/v1/projects/${projectRef}/config/auth`,
@@ -74,6 +81,8 @@ const res = await fetch(
       external_google_enabled: true,
       external_google_client_id: clientId,
       external_google_secret: clientSecret,
+      site_url: siteUrl,
+      uri_allow_list: redirectAllowList,
     }),
   }
 );

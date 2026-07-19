@@ -6,6 +6,7 @@ import { AuthGuard } from "@/components/auth/auth-guard";
 import { DisclaimerGuard } from "@/components/marketing/disclaimer-guard";
 import { AnalyzePathSection } from "@/components/marketing/analyze-path-section";
 import { AppHeader } from "@/components/shared/app-header";
+import { PageBackdrop } from "@/components/motion/page-backdrop";
 import { ensureAuth } from "@/hooks/use-auth";
 import type { AnalysisPath } from "@/types/questionnaire";
 
@@ -57,9 +58,8 @@ function AnalyzeContent() {
 
   return (
     <DisclaimerGuard>
-      <div className="landing-canvas relative min-h-screen overflow-hidden">
-        <div className="dot-grid pointer-events-none absolute inset-0 -z-10" />
-        <div className="page-glow pointer-events-none absolute inset-0 -z-10" />
+      <div className="landing-canvas relative min-h-screen overflow-hidden luxury-grain">
+        <PageBackdrop />
         <div className="mx-auto w-full max-w-5xl px-4 sm:px-6">
           <AppHeader />
         </div>

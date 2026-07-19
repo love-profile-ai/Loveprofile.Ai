@@ -2,16 +2,22 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
 import { LoginForm } from "@/components/auth/login-form";
 import { LandingNavbar } from "@/components/marketing/landing-navbar";
 import { FadeInView } from "@/components/motion/fade-in-view";
+import { PageBackdrop } from "@/components/motion/page-backdrop";
+import { PremiumLoader } from "@/components/motion/premium-loader";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { SITE_NAME } from "@/lib/site";
-import { Clock, Loader2, Lock, PartyPopper, Shield, Sparkles } from "lucide-react";
+import { Clock, Lock, PartyPopper, Shield, Sparkles } from "lucide-react";
 
-function PendingBanner() {
+function PendingBanner({ email }: { email: string | null }) {
+  const sql = email
+    ? `UPDATE public.profiles\nSET role = 'admin',\n    approval_status = 'approved',\n    approved_at = now()\nWHERE email = '${email}';`
+    : null;
+
   return (
     <div className="premium-card mb-6 w-full p-6 text-center">
       <div className="mx-auto flex size-14 items-center justify-center rounded-full border border-gold/25 bg-gold/12 text-gold">
@@ -20,13 +26,38 @@ function PendingBanner() {
       <p className="text-label mt-4">Almost in</p>
       <h2 className="font-display mt-2 text-2xl font-semibold">Admin approval pending</h2>
       <p className="text-lead mx-auto mt-3 max-w-sm">
-        You signed in successfully. An admin must approve your Google or email
-        account before you can use the website. This page will unlock automatically
-        after approval.
+        Sign-in worked. Your account ({email ?? "signed-in user"}) is waiting for
+        admin approval before you can use the full website.
       </p>
-      <Button className="btn-cta mt-5" onClick={() => window.location.reload()}>
-        Check again
-      </Button>
+      {email && (
+        <div className="mt-5 rounded-2xl border border-primary/15 bg-primary/5 px-4 py-3 text-left text-sm font-medium text-foreground/70">
+          <p className="font-semibold text-foreground/80">Site owner? Approve yourself in Supabase</p>
+          <p className="mt-2">
+            Open{" "}
+            <Link
+              href="https://supabase.com/dashboard/project/moeeekjnzupjrnvxbrqw/sql/new"
+              target="_blank"
+              className="text-primary underline"
+            >
+              Supabase SQL Editor
+            </Link>
+            , run this, then click Check again:
+          </p>
+          <pre className="mt-3 overflow-x-auto rounded-xl bg-background/60 p-3 text-left font-mono text-xs">
+            {sql}
+          </pre>
+        </div>
+      )}
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <Button className="btn-cta" onClick={() => window.location.reload()}>
+          Check again
+        </Button>
+        <Link href="/admin">
+          <Button variant="outline" className="w-full">
+            Open admin
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 }
@@ -38,6 +69,7 @@ function LoginContent() {
   const pendingFromOAuth = searchParams.get("pending") === "1";
   const [checkingSession, setCheckingSession] = useState(true);
   const [pendingApproval, setPendingApproval] = useState(pendingFromOAuth);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -51,6 +83,8 @@ function LoginContent() {
         setCheckingSession(false);
         return;
       }
+
+      setUserEmail(session.user.email ?? null);
 
       try {
         const res = await fetch("/api/me/access");
@@ -82,33 +116,16 @@ function LoginContent() {
 
   if (checkingSession) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="size-8 animate-spin text-primary" />
+      <div className="landing-canvas luxury-grain min-h-screen">
+        <PageBackdrop />
+        <PremiumLoader className="min-h-screen" label="Checking your session" />
       </div>
     );
   }
 
   return (
-    <div className="landing-canvas">
-      <div className="dot-grid pointer-events-none absolute inset-0 -z-10" />
-      <div className="page-glow pointer-events-none absolute inset-0 -z-10" />
-
-      <motion.div
-        className="pointer-events-none absolute -left-32 top-32 size-96 rounded-full bg-primary/18 blur-3xl"
-        animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="pointer-events-none absolute -right-24 bottom-24 size-80 rounded-full bg-lavender/18 blur-3xl"
-        animate={{ x: [0, -25, 0], y: [0, 15, 0] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="pointer-events-none absolute left-1/2 top-1/3 size-64 -translate-x-1/2 rounded-full bg-coral/12 blur-3xl"
-        animate={{ scale: [1, 1.08, 1] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-      />
-
+    <div className="landing-canvas luxury-grain">
+      <PageBackdrop intensity="medium" />
       <LandingNavbar />
 
       <div className="relative mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-lg flex-col items-center justify-center px-4 py-16 sm:px-6">
@@ -125,7 +142,7 @@ function LoginContent() {
 
         {pendingApproval ? (
           <FadeInView delay={0.1} className="w-full">
-            <PendingBanner />
+            <PendingBanner email={userEmail} />
           </FadeInView>
         ) : (
           <FadeInView delay={0.1} className="w-full">
@@ -160,8 +177,9 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center">
-          <Loader2 className="size-8 animate-spin text-primary" />
+        <div className="landing-canvas luxury-grain min-h-screen">
+          <PageBackdrop />
+          <PremiumLoader className="min-h-screen" />
         </div>
       }
     >

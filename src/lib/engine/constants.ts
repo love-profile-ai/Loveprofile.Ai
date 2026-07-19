@@ -1,8 +1,10 @@
+/** When true, only the fixed foundation question list runs — no adaptive follow-ups. */
+export const STATIC_QUESTIONNAIRE_ONLY = true;
+
 export const CONFIDENCE_END_THRESHOLD = 90;
 export const CONFIDENCE_CLARIFY_THRESHOLD = 75;
-export const MIN_QUESTIONS_BEFORE_EARLY_END = 18;
-export const MAX_QUESTIONS = 18;
-
+export const MIN_QUESTIONS_BEFORE_EARLY_END = 8;
+export const MAX_QUESTIONS = 8;
 /** Score ceiling per dimension (0–100 scale). */
 export const SCORE_CEILING = 100;
 export const SCORE_FLOOR = 0;

@@ -13,6 +13,7 @@ import { AdaptiveProgressBar } from "@/components/questionnaire/adaptive-progres
 import { useAdaptiveSession } from "@/stores/adaptive-session";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import type { AnalysisPath } from "@/types/questionnaire";
+import { STATIC_QUESTIONNAIRE_ONLY } from "@/lib/engine/constants";
 import type { Question, UserProfile, AssessmentSummary } from "@/types/adaptive-engine";
 import { ChevronLeft, Loader2 } from "lucide-react";
 
@@ -204,7 +205,9 @@ export function AdaptiveQuestionEngine({
 
           {!canContinue && (
             <p className="mt-5 rounded-3xl border border-primary/12 bg-primary/6 px-5 py-4 text-sm font-semibold text-foreground/65">
-              Choose an answer — the next question adapts to what you share.
+              {STATIC_QUESTIONNAIRE_ONLY
+                ? "Choose an answer to continue through the guided reflection."
+                : "Choose an answer — the next question adapts to what you share."}
             </p>
           )}
 

@@ -30,6 +30,8 @@ function getBaseUrl(request: NextRequest): string {
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
+  const tokenHash = searchParams.get("token_hash");
+  const otpType = searchParams.get("type");
   const errorParam =
     searchParams.get("error_description") ?? searchParams.get("error");
   const next = safeNextPath(searchParams.get("next"));
@@ -42,7 +44,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  if (!code) {
+  if (!code && !(tokenHash && otpType)) {
     return NextResponse.redirect(
       `${baseUrl}/login?next=${encodeURIComponent(next)}&error=${encodeURIComponent("Missing sign-in code. Please try again.")}`
     );
@@ -69,6 +71,14 @@ export async function GET(request: NextRequest) {
 
   let response: NextResponse = successResponse;
 
+  function redirectKeepingSession(targetUrl: string) {
+    const redirect = NextResponse.redirect(targetUrl);
+    response.cookies.getAll().forEach((cookie) => {
+      redirect.cookies.set(cookie);
+    });
+    return redirect;
+  }
+
   const supabase = createServerClient(url, anonKey, {
     cookies: {
       getAll() {
@@ -82,14 +92,40 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+  let user = null;
 
-  if (error) {
-    console.error("Auth callback — exchangeCodeForSession failed:", error.message);
-    return errorResponse("Sign-in link expired or is invalid. Please try again.");
+  if (code) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (error) {
+      console.error("Auth callback — exchangeCodeForSession failed:", error.message);
+      return errorResponse("Sign-in link expired or is invalid. Please try again.");
+    }
+
+    user = data.user;
+  } else if (tokenHash && otpType) {
+    const { data, error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: otpType as
+        | "signup"
+        | "invite"
+        | "magiclink"
+        | "recovery"
+        | "email_change"
+        | "email",
+    });
+
+    if (error) {
+      console.error("Auth callback — verifyOtp failed:", error.message);
+      return errorResponse("Sign-in link expired or is invalid. Please try again.");
+    }
+
+    user = data.user;
   }
 
-  const user = data.user;
+  if (!user) {
+    return errorResponse("Sign-in could not be completed. Please try again.");
+  }
   if (
     user?.email?.includes("@guest.loveprofile.ai") ||
     user.user_metadata?.guest
@@ -115,17 +151,15 @@ export async function GET(request: NextRequest) {
     const approved = isAdmin || approvalStatus === "approved";
 
     if (!approved) {
-      response = NextResponse.redirect(
+      return redirectKeepingSession(
         `${baseUrl}/login?pending=1&next=${encodeURIComponent(next)}`
       );
-      return response;
     }
   } catch (error) {
     console.error("Auth callback — approval check failed:", error);
-    response = NextResponse.redirect(
+    return redirectKeepingSession(
       `${baseUrl}/login?pending=1&next=${encodeURIComponent(next)}`
     );
-    return response;
   }
 
   return response;

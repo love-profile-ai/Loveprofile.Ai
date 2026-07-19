@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { PremiumLoader } from "@/components/motion/premium-loader";
 import { SITE_NAME, SUPPORT_EMAIL } from "@/lib/site";
 
 interface AccessState {
@@ -38,6 +39,7 @@ const PUBLIC_PATHS = ["/"];
 const BYPASS_PREFIXES = [
   "/admin",
   "/login",
+  "/setup",
   "/auth",
   "/api",
   "/_next",
@@ -264,11 +266,7 @@ export function ApprovalGate({ children }: { children: React.ReactNode }) {
   }
 
   if (!access) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="size-8 animate-spin text-primary" />
-      </div>
-    );
+    return <PremiumLoader className="min-h-screen" label="Checking access" />;
   }
 
   if (protectedPath && !access.authenticated) {

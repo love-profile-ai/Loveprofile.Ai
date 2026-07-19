@@ -7,6 +7,7 @@ import { AuthGuard } from "@/components/auth/auth-guard";
 import { DisclaimerCard } from "@/components/marketing/disclaimer-card";
 import { LandingNavbar } from "@/components/marketing/landing-navbar";
 import { FadeInView } from "@/components/motion/fade-in-view";
+import { PageBackdrop } from "@/components/motion/page-backdrop";
 import { hasAcceptedDisclaimer } from "@/lib/disclaimer";
 import { SITE_NAME } from "@/lib/site";
 import { Heart, Shield, Sparkles } from "lucide-react";
@@ -50,9 +51,8 @@ function DisclaimerContent() {
   }, [router]);
 
   return (
-    <div className="landing-canvas">
-      <div className="dot-grid pointer-events-none absolute inset-0 -z-10" />
-      <div className="page-glow pointer-events-none absolute inset-0 -z-10" />
+    <div className="landing-canvas luxury-grain">
+      <PageBackdrop />
       <LandingNavbar />
 
       <div className="relative mx-auto w-full max-w-3xl px-4 py-16 sm:px-6 sm:py-24">
